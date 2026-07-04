@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/AtaCanYmc/okey-solver-py/compare/v0.1.0...v0.1.1) (2026-07-04)
+
+
+### Bug Fixes
+
+* update poetry install command to include all extras ([4be6025](https://github.com/AtaCanYmc/okey-solver-py/commit/4be6025e9b9ec7b71c87433eba50b49872186178))
+
 ## 0.1.0 (2026-07-04)
 
 
