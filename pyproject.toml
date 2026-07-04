@@ -18,7 +18,7 @@ requests = "^2.31"
 ultralytics = "^8.0"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.0"
+pytest = ">=8,<10"
 mypy = "^1.0"
 ruff = "^0.3"
 
