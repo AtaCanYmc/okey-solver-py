@@ -13,7 +13,7 @@ python = "^3.10"
 pydantic = "^2.0"
 numpy = "^1.20"
 opencv-python = "^4.0"
-pillow = "^10.0"
+pillow = ">=10,<13"
 requests = "^2.31"
 ultralytics = "^8.0"
 
