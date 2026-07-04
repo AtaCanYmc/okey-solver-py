@@ -21,7 +21,7 @@ jobs:
       # The following steps run only when a release PR is merged (a new release is created)
       - name: Checkout repository
         if: ${{ steps.release.outputs.release_created }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
         if: ${{ steps.release.outputs.release_created }}
