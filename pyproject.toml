@@ -28,6 +28,8 @@ ruff = ">=0.3,<0.16"
 
 [tool.poetry.scripts]
 okey-demo = "demo.console.demo_cli:run_solver_demo"
+okey-solve = "okey_solver.cli:main"
+okey-vision = "okey_vision.cli:main"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
