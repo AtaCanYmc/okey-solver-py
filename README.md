@@ -78,3 +78,4 @@ For details on architecture, rules, and APIs:
 - 🏗 **[Architecture & Flow](docs/ARCHITECTURE.md)** - Details on pipeline stages, frame adapters, and observers.
 - 📜 **[Game Rules Reference](docs/ALGORITHM_RULES.md)** - Okey rules, 12-13-1 circular runs, joker and false okey logic.
 - 💻 **[CLI Usage Guide](docs/CLI_USAGE.md)** - Guide to running `okey-solve` and `okey-vision` terminal applications.
+- 🤖 **[Telegram Bot Demo](demo/telegram/bot.py)** - Telegram Bot server example integrating image detection and layout solving.
