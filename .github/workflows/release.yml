@@ -1,0 +1,46 @@
+name: Release Please (CD)
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: google-github-actions/release-please-action@v4
+        id: release
+        with:
+          release-type: python
+
+      # The following steps run only when a release PR is merged (a new release is created)
+      - name: Checkout repository
+        if: ${{ steps.release.outputs.release_created }}
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        if: ${{ steps.release.outputs.release_created }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Poetry
+        if: ${{ steps.release.outputs.release_created }}
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+
+      - name: Install dependencies
+        if: ${{ steps.release.outputs.release_created }}
+        run: |
+          poetry install
+
+      - name: Build and Publish to PyPI
+        if: ${{ steps.release.outputs.release_created }}
+        run: |
+          poetry build
+          poetry publish -u __token__ -p ${{ secrets.PYPI_API_TOKEN }}
