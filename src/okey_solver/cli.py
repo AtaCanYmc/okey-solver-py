@@ -1,6 +1,5 @@
 # src/okey_solver/cli.py
 import argparse
-import sys
 from okey_solver.types import Tile, TileColor
 from okey_solver.solver import SolverEngine
 
