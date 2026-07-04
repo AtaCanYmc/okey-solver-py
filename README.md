@@ -1,6 +1,8 @@
 # okey-solver-py
 
-Python package providing the core game logic engine (`okey_solver`) and camera frames processing pipeline (`okey_vision`) ported from TypeScript.
+Python library for solving Okey & Rummikub tile arrangements and processing board layouts.
+
+---
 
 ## Features
 - **Backtracking Solver**: Optimal arrangement solver for Okey / Rummikub games.
@@ -8,12 +10,18 @@ Python package providing the core game logic engine (`okey_solver`) and camera f
 - **Extensible Vision Engine**: Process frames natively with numpy arrays (OpenCV), PIL, base64 strings, bytes, and paths.
 - **Provider Support**: Native local YOLO (`ultralytics`) and cloud Roboflow API implementations.
 
+---
+
 ## Installation
 ```bash
 pip install okey-solver-py
 ```
 
+---
+
 ## Quick Start
+
+### Basic Solver Arrangement
 ```python
 from okey_solver import SolverEngine, Tile, TileColor
 
@@ -26,4 +34,39 @@ result = SolverEngine.findBestArrangement(tiles)
 print(result.totalScore)
 ```
 
-For more documentation, look into `docs/` folder.
+### With Roboflow Provider
+```python
+from okey_vision import RoboflowProvider, VisionSolverEngine
+
+provider = RoboflowProvider(
+    api_key="your_api_key",
+    model_id="rummikub-5bldr",
+    model_version=1
+)
+
+engine = VisionSolverEngine(provider)
+result = engine.analyze_frame("image_path.jpg")
+print(result["tiles"])
+print(result["arrangement"])
+```
+
+### With Local YOLO Model
+```python
+from okey_vision import LocalYoloProvider, VisionSolverEngine
+
+provider = LocalYoloProvider(
+    model_path="./models/yolov8_best.pt"
+)
+
+engine = VisionSolverEngine(provider)
+result = engine.analyze_frame("board_layout.jpg")
+print(result["arrangement"])
+```
+
+---
+
+## Extended Documentation
+
+For details on architecture, rules, and APIs:
+- 🏗 **[Architecture & Flow](docs/ARCHITECTURE.md)** - Details on pipeline stages, frame adapters, and observers.
+- 📜 **[Game Rules Reference](docs/ALGORITHM_RULES.md)** - Okey rules, 12-13-1 circular runs, joker and false okey logic.
