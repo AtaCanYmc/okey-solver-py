@@ -18,5 +18,5 @@ __all__ = [
     "SolverEngine",
     "MeldGenerator",
     "BacktrackingSolver",
-    "PairFinder"
+    "PairFinder",
 ]

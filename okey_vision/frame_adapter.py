@@ -7,11 +7,11 @@ import numpy as np
 import cv2
 from okey_vision.types import FrameInput
 
+
 class FrameAdapter(Protocol):
-    def can_adapt(self, input_val: Any) -> bool:
-        ...
-    def adapt(self, input_val: Any) -> FrameInput:
-        ...
+    def can_adapt(self, input_val: Any) -> bool: ...
+    def adapt(self, input_val: Any) -> FrameInput: ...
+
 
 class PassthroughFrameAdapter:
     def can_adapt(self, input_val: Any) -> bool:
@@ -20,18 +20,15 @@ class PassthroughFrameAdapter:
     def adapt(self, input_val: Any) -> FrameInput:
         return input_val
 
+
 class NumpyFrameAdapter:
     def can_adapt(self, input_val: Any) -> bool:
         return isinstance(input_val, np.ndarray)
 
     def adapt(self, input_val: Any) -> FrameInput:
         h, w = input_val.shape[:2]
-        return FrameInput(
-            data=input_val,
-            width=w,
-            height=h,
-            mime_type="image/raw"
-        )
+        return FrameInput(data=input_val, width=w, height=h, mime_type="image/raw")
+
 
 class PILImageFrameAdapter:
     def can_adapt(self, input_val: Any) -> bool:
@@ -41,12 +38,8 @@ class PILImageFrameAdapter:
         # Convert PIL to Numpy array
         arr = np.array(input_val)
         w, h = input_val.size
-        return FrameInput(
-            data=arr,
-            width=w,
-            height=h,
-            mime_type="image/raw"
-        )
+        return FrameInput(data=arr, width=w, height=h, mime_type="image/raw")
+
 
 class BytesFrameAdapter:
     def can_adapt(self, input_val: Any) -> bool:
@@ -58,18 +51,16 @@ class BytesFrameAdapter:
         if img is None:
             return FrameInput(data=input_val, mime_type="application/octet-stream")
         h, w = img.shape[:2]
-        return FrameInput(
-            data=img,
-            width=w,
-            height=h,
-            mime_type="image/raw"
-        )
+        return FrameInput(data=img, width=w, height=h, mime_type="image/raw")
+
 
 class Base64FrameAdapter:
     def can_adapt(self, input_val: Any) -> bool:
         if not isinstance(input_val, str):
             return False
-        return input_val.startswith("data:image") or len(input_val) > 100 # Simple heuristic
+        return (
+            input_val.startswith("data:image") or len(input_val) > 100
+        )  # Simple heuristic
 
     def adapt(self, input_val: Any) -> FrameInput:
         if "," in input_val:
@@ -80,12 +71,8 @@ class Base64FrameAdapter:
         if img is None:
             return FrameInput(data=decoded, mime_type="application/octet-stream")
         h, w = img.shape[:2]
-        return FrameInput(
-            data=img,
-            width=w,
-            height=h,
-            mime_type="image/raw"
-        )
+        return FrameInput(data=img, width=w, height=h, mime_type="image/raw")
+
 
 class PathFrameAdapter:
     def can_adapt(self, input_val: Any) -> bool:
@@ -96,12 +83,8 @@ class PathFrameAdapter:
         if img is None:
             raise ValueError(f"Could not read image from path: {input_val}")
         h, w = img.shape[:2]
-        return FrameInput(
-            data=img,
-            width=w,
-            height=h,
-            mime_type="image/raw"
-        )
+        return FrameInput(data=img, width=w, height=h, mime_type="image/raw")
+
 
 def default_frame_adapters() -> List[FrameAdapter]:
     return [
@@ -110,8 +93,9 @@ def default_frame_adapters() -> List[FrameAdapter]:
         PILImageFrameAdapter(),
         BytesFrameAdapter(),
         Base64FrameAdapter(),
-        PathFrameAdapter()
+        PathFrameAdapter(),
     ]
+
 
 def adapt_to_frame_input(input_val: Any, adapters: List[FrameAdapter]) -> FrameInput:
     for adapter in adapters:

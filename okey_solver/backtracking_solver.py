@@ -2,11 +2,15 @@
 from typing import List, Dict
 from okey_solver.types import Tile, Meld, Arrangement
 
+
 class BacktrackingSolver:
     """
     Backtracking ile aday havuzundaki per/seri kombinasyonlarından en yüksek puanlı çakışmasız dizilimi bulur.
     """
-    def solve(self, resolved_tiles: List[Tile], all_possible_melds: List[Meld]) -> Arrangement:
+
+    def solve(
+        self, resolved_tiles: List[Tile], all_possible_melds: List[Meld]
+    ) -> Arrangement:
         best_arrangement: List[Meld] = []
         max_score = 0
 
@@ -24,7 +28,9 @@ class BacktrackingSolver:
                     return False
             return True
 
-        def remove_tiles_from_pool(used_tiles: List[Tile], pool: List[Tile]) -> List[Tile]:
+        def remove_tiles_from_pool(
+            used_tiles: List[Tile], pool: List[Tile]
+        ) -> List[Tile]:
             remaining = list(pool)
             for used in used_tiles:
                 for idx, t in enumerate(remaining):
@@ -39,7 +45,11 @@ class BacktrackingSolver:
                 score += sum(t.value for t in meld.tiles)
             return score
 
-        def search(current_arrangement: List[Meld], remaining_pool: List[Tile], current_index: int):
+        def search(
+            current_arrangement: List[Meld],
+            remaining_pool: List[Tile],
+            current_index: int,
+        ):
             nonlocal max_score, best_arrangement
             current_score = calculate_arrangement_score(current_arrangement)
 
@@ -51,7 +61,9 @@ class BacktrackingSolver:
                 candidate_meld = all_possible_melds[i]
 
                 if can_form_meld(candidate_meld.tiles, remaining_pool):
-                    next_remaining_pool = remove_tiles_from_pool(candidate_meld.tiles, remaining_pool)
+                    next_remaining_pool = remove_tiles_from_pool(
+                        candidate_meld.tiles, remaining_pool
+                    )
                     current_arrangement.append(candidate_meld)
 
                     search(current_arrangement, next_remaining_pool, i + 1)
@@ -68,7 +80,5 @@ class BacktrackingSolver:
         remaining_tiles = [t for t in resolved_tiles if t.id not in used_ids]
 
         return Arrangement(
-            melds=best_arrangement,
-            remainingTiles=remaining_tiles,
-            totalScore=max_score
+            melds=best_arrangement, remainingTiles=remaining_tiles, totalScore=max_score
         )

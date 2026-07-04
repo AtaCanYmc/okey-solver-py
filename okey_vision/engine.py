@@ -2,27 +2,32 @@
 import time
 from typing import Any, List, Optional, Protocol, Callable, Dict
 from okey_vision.types import FrameInput, Detection
-from okey_vision.frame_adapter import FrameAdapter, default_frame_adapters, adapt_to_frame_input
+from okey_vision.frame_adapter import (
+    FrameAdapter,
+    default_frame_adapters,
+    adapt_to_frame_input,
+)
 from okey_solver.types import Tile
 
+
 class VisionObserver(Protocol):
-    def on_event(self, event: Dict[str, Any]) -> None:
-        ...
+    def on_event(self, event: Dict[str, Any]) -> None: ...
+
 
 class VisionPipeline(Protocol):
-    def preprocess(self, frame: FrameInput) -> FrameInput:
-        ...
-    def detect(self, frame: FrameInput) -> List[Detection]:
-        ...
-    def classify(self, frame: FrameInput, detections: List[Detection]) -> List[Tile]:
-        ...
+    def preprocess(self, frame: FrameInput) -> FrameInput: ...
+    def detect(self, frame: FrameInput) -> List[Detection]: ...
+    def classify(
+        self, frame: FrameInput, detections: List[Detection]
+    ) -> List[Tile]: ...
+
 
 class DefaultVisionPipeline:
     def __init__(
         self,
         detect_fn: Callable[[FrameInput], List[Detection]],
         classify_fn: Callable[[FrameInput, List[Detection]], List[Tile]],
-        preprocess_fn: Optional[Callable[[FrameInput], FrameInput]] = None
+        preprocess_fn: Optional[Callable[[FrameInput], FrameInput]] = None,
     ):
         self._detect = detect_fn
         self._classify = classify_fn
@@ -37,12 +42,13 @@ class DefaultVisionPipeline:
     def classify(self, frame: FrameInput, detections: List[Detection]) -> List[Tile]:
         return self._classify(frame, detections)
 
+
 class VisionEngine:
     def __init__(
         self,
         pipeline: VisionPipeline,
         frame_adapters: Optional[List[FrameAdapter]] = None,
-        observers: Optional[List[VisionObserver]] = None
+        observers: Optional[List[VisionObserver]] = None,
     ):
         self.pipeline = pipeline
         self.frame_adapters = frame_adapters or default_frame_adapters()
@@ -69,9 +75,23 @@ class VisionEngine:
         self.emit({"stage": "preprocess", "status": "start", "timestamp": start_time})
         try:
             prepared_frame = self.pipeline.preprocess(frame)
-            self.emit({"stage": "preprocess", "status": "end", "timestamp": time.time(), "frame": prepared_frame})
+            self.emit(
+                {
+                    "stage": "preprocess",
+                    "status": "end",
+                    "timestamp": time.time(),
+                    "frame": prepared_frame,
+                }
+            )
         except Exception as e:
-            self.emit({"stage": "preprocess", "status": "error", "timestamp": time.time(), "error": e})
+            self.emit(
+                {
+                    "stage": "preprocess",
+                    "status": "error",
+                    "timestamp": time.time(),
+                    "error": e,
+                }
+            )
             raise e
 
         # Detect
@@ -79,9 +99,23 @@ class VisionEngine:
         self.emit({"stage": "detect", "status": "start", "timestamp": start_time})
         try:
             detections = self.pipeline.detect(prepared_frame)
-            self.emit({"stage": "detect", "status": "end", "timestamp": time.time(), "detections": detections})
+            self.emit(
+                {
+                    "stage": "detect",
+                    "status": "end",
+                    "timestamp": time.time(),
+                    "detections": detections,
+                }
+            )
         except Exception as e:
-            self.emit({"stage": "detect", "status": "error", "timestamp": time.time(), "error": e})
+            self.emit(
+                {
+                    "stage": "detect",
+                    "status": "error",
+                    "timestamp": time.time(),
+                    "error": e,
+                }
+            )
             raise e
 
         # Classify
@@ -89,9 +123,23 @@ class VisionEngine:
         self.emit({"stage": "classify", "status": "start", "timestamp": start_time})
         try:
             tiles = self.pipeline.classify(prepared_frame, detections)
-            self.emit({"stage": "classify", "status": "end", "timestamp": time.time(), "tiles": tiles})
+            self.emit(
+                {
+                    "stage": "classify",
+                    "status": "end",
+                    "timestamp": time.time(),
+                    "tiles": tiles,
+                }
+            )
         except Exception as e:
-            self.emit({"stage": "classify", "status": "error", "timestamp": time.time(), "error": e})
+            self.emit(
+                {
+                    "stage": "classify",
+                    "status": "error",
+                    "timestamp": time.time(),
+                    "error": e,
+                }
+            )
             raise e
 
         return tiles

@@ -2,13 +2,19 @@
 from typing import List, Tuple, Dict, Any, Optional
 from okey_solver.types import Tile, OkeyMeta, TileColor
 
+
 class PairFinder:
     """
     Çifte Gitme: Eldeki taşlardan en fazla "özdeş çift" bulur.
     """
-    def find_best_pairs(self, tiles: List[Tile], okey_meta: Optional[OkeyMeta] = None) -> Dict[str, Any]:
-        resolved_tiles = self.resolve_false_okeys(tiles, okey_meta) if okey_meta else tiles
-        
+
+    def find_best_pairs(
+        self, tiles: List[Tile], okey_meta: Optional[OkeyMeta] = None
+    ) -> Dict[str, Any]:
+        resolved_tiles = (
+            self.resolve_false_okeys(tiles, okey_meta) if okey_meta else tiles
+        )
+
         wildcards = []
         normal_tiles = []
         if okey_meta:
@@ -59,14 +65,16 @@ class PairFinder:
         return {
             "pairs": pairs,
             "remainingTiles": remaining_tiles,
-            "totalPairs": len(pairs)
+            "totalPairs": len(pairs),
         }
 
     def resolve_false_okeys(self, tiles: List[Tile], okey_meta: OkeyMeta) -> List[Tile]:
         resolved = []
         for t in tiles:
             if t.color == TileColor.JOKER:
-                resolved.append(Tile(id=t.id, color=okey_meta.color, value=okey_meta.value))
+                resolved.append(
+                    Tile(id=t.id, color=okey_meta.color, value=okey_meta.value)
+                )
             else:
                 resolved.append(t)
         return resolved

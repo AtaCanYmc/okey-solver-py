@@ -4,13 +4,16 @@ from okey_vision.engine import VisionEngine, VisionPipeline
 from okey_solver.types import Tile, Arrangement, OkeyMeta
 from okey_solver.solver import SolverEngine
 
+
 class VisionOrchestrator:
     def __init__(
         self,
         pipeline: VisionPipeline,
         okey_meta: Optional[OkeyMeta] = None,
-        solve_tiles_fn: Optional[Callable[[List[Tile], Optional[OkeyMeta]], Any]] = None,
-        observers: Optional[List[Any]] = None
+        solve_tiles_fn: Optional[
+            Callable[[List[Tile], Optional[OkeyMeta]], Any]
+        ] = None,
+        observers: Optional[List[Any]] = None,
     ):
         self.vision_engine = VisionEngine(pipeline, observers=observers)
         self.okey_meta = okey_meta
@@ -21,18 +24,18 @@ class VisionOrchestrator:
     def analyze_frame(self, frame: Any) -> Dict[str, Any]:
         tiles = self.vision_engine.process_frame(frame)
         output = self.solve_tiles(tiles, self.okey_meta)
-        return {
-            "tiles": tiles,
-            "output": output
-        }
+        return {"tiles": tiles, "output": output}
+
 
 class VisionSolverEngine(VisionOrchestrator):
     def __init__(
         self,
         pipeline: VisionPipeline,
         okey_meta: Optional[OkeyMeta] = None,
-        solve_tiles_fn: Optional[Callable[[List[Tile], Optional[OkeyMeta]], Arrangement]] = None,
-        observers: Optional[List[Any]] = None
+        solve_tiles_fn: Optional[
+            Callable[[List[Tile], Optional[OkeyMeta]], Arrangement]
+        ] = None,
+        observers: Optional[List[Any]] = None,
     ):
         super().__init__(pipeline, okey_meta, solve_tiles_fn, observers)
 
@@ -41,5 +44,5 @@ class VisionSolverEngine(VisionOrchestrator):
         return {
             "tiles": res["tiles"],
             "output": res["output"],
-            "arrangement": res["output"]
+            "arrangement": res["output"],
         }
