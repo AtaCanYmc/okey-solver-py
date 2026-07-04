@@ -29,12 +29,12 @@ jobs:
 
       - name: Run Ruff Linter
         run: |
-          poetry run ruff check okey_solver okey_vision tests
+          poetry run ruff check src/okey_solver src/okey_vision tests
 
       - name: Run Ruff Formatter check
         run: |
-          poetry run ruff format --check okey_solver okey_vision tests
+          poetry run ruff format --check src/okey_solver src/okey_vision tests
 
       - name: Run pytest
         run: |
-          poetry run pytest
+          PYTHONPATH=src poetry run pytest
