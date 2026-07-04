@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/AtaCanYmc/okey-solver-py/compare/v0.2.0...v0.3.0) (2026-07-04)
+
+
+### Features
+
+* add README.md reference in pyproject.toml ([af52966](https://github.com/AtaCanYmc/okey-solver-py/commit/af52966189a10a7c4c1ed4f2e3d24a3c456a33fe))
+
 ## [0.2.0](https://github.com/AtaCanYmc/okey-solver-py/compare/v0.1.1...v0.2.0) (2026-07-04)
 
 
