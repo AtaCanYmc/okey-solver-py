@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.0](https://github.com/AtaCanYmc/okey-solver-py/compare/v0.1.1...v0.2.0) (2026-07-04)
+
+
+### Features
+
+* add run configuration for Telegram bot in project setup ([17f3310](https://github.com/AtaCanYmc/okey-solver-py/commit/17f33108c9fb37961dd0778504f85e470e0e11b5))
+* add Telegram bot for Okey Vision with image processing and layout solving ([530a761](https://github.com/AtaCanYmc/okey-solver-py/commit/530a7613868177817f705b9cc7e93248bbe2c7eb))
+
+
+### Bug Fixes
+
+* improve bot initialization and error handling for missing TELEGRAM_BOT_TOKEN ([6def8c8](https://github.com/AtaCanYmc/okey-solver-py/commit/6def8c8ca59c5ad37d47358bdca94d296629c52c))
+* update release workflow to include OIDC permissions and improve PyPI publishing steps ([0f44ca2](https://github.com/AtaCanYmc/okey-solver-py/commit/0f44ca2312e64b21947e7ef814c6fa082576a176))
+
 ## [0.1.1](https://github.com/AtaCanYmc/okey-solver-py/compare/v0.1.0...v0.1.1) (2026-07-04)
 
 
