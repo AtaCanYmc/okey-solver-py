@@ -1,6 +1,13 @@
-# okey-solver-py
+<div align="center">
+  <img src=".github/screenshots/okey-solver-logo.png" alt="Okey Solver Py Logo" width="200" />
+  <h1>okey-solver-py</h1>
+  <p>Python library for solving Okey & Rummikub tile arrangements and processing board layouts.</p>
 
-Python library for solving Okey & Rummikub tile arrangements and processing board layouts.
+  [![PyPI version](https://img.shields.io/pypi/v/okey-solver-py.svg)](https://pypi.org/project/okey-solver-py/)
+  [![tests](https://img.shields.io/badge/tests-11%2F11%20passing-brightgreen)](./tests)
+  [![Python support](https://img.shields.io/badge/Python-3.10+-blue.svg)](#-requirements)
+  [![License](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](./LICENSE)
+</div>
 
 ---
 
