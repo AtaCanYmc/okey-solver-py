@@ -1,5 +1,5 @@
 # okey_solver/backtracking_solver.py
-from typing import List, Set, Dict
+from typing import List, Dict
 from okey_solver.types import Tile, Meld, Arrangement
 
 class BacktrackingSolver:

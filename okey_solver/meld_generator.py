@@ -165,7 +165,7 @@ class MeldGenerator:
 
     def generate_windowed_seris(
         self,
-        start_val: number,
+        start_val: int,
         color: str,
         circular_map: Dict[int, List[Tile]],
         max_wildcards: int,

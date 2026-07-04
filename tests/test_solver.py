@@ -1,6 +1,4 @@
-# tests/test_solver.py
-import pytest
-from okey_solver import SolverEngine, Tile, TileColor, OkeyMeta, MeldType, RuleValidator
+from okey_solver import SolverEngine, Tile, TileColor, OkeyMeta, MeldType
 
 def create_tile(tile_id: str, color: TileColor, value: int) -> Tile:
     return Tile(id=tile_id, color=color, value=value)

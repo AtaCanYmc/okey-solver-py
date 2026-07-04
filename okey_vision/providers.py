@@ -1,6 +1,6 @@
 # okey_vision/providers.py
 import re
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union
 import numpy as np
 import requests
 from okey_vision.types import FrameInput, Detection, BoundingBox

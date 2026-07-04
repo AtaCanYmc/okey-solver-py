@@ -1,6 +1,6 @@
 # okey_vision/types.py
-from typing import Optional, Dict, Any, Union, Callable, Awaitable
-from pydantic import BaseModel, Field
+from typing import Optional, Dict, Any, Union
+from pydantic import BaseModel, Field, ConfigDict
 import numpy as np
 
 class BoundingBox(BaseModel):
@@ -20,8 +20,7 @@ class Detection(BaseModel):
 BinaryFrame = Union[str, bytes, bytearray, np.ndarray]
 
 class FrameInput(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     data: BinaryFrame
     mime_type: Optional[str] = None

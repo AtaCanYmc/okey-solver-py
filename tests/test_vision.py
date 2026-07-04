@@ -1,7 +1,5 @@
-# tests/test_vision.py
-import pytest
 import numpy as np
-from okey_vision import VisionSolverEngine, FrameInput, DefaultVisionPipeline, Detection, BoundingBox
+from okey_vision import VisionSolverEngine, DefaultVisionPipeline, Detection, BoundingBox
 from okey_solver import Tile, TileColor, MeldType
 
 def test_vision_solver_engine_orchestration():

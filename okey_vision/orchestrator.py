@@ -1,6 +1,5 @@
 # okey_vision/orchestrator.py
 from typing import Any, List, Optional, Callable, Dict
-from okey_vision.types import FrameInput
 from okey_vision.engine import VisionEngine, VisionPipeline
 from okey_solver.types import Tile, Arrangement, OkeyMeta
 from okey_solver.solver import SolverEngine

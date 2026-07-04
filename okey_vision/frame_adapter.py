@@ -1,11 +1,11 @@
 # okey_vision/frame_adapter.py
 import base64
 import os
-from typing import Any, List, Union, Protocol
+from typing import Any, List, Protocol
 from PIL import Image
 import numpy as np
 import cv2
-from okey_vision.types import FrameInput, BinaryFrame
+from okey_vision.types import FrameInput
 
 class FrameAdapter(Protocol):
     def can_adapt(self, input_val: Any) -> bool:
