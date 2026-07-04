@@ -5,6 +5,7 @@ import os
 from okey_vision.orchestrator import VisionSolverEngine
 from okey_vision.providers import LocalYoloProvider
 
+
 def main():
     parser = argparse.ArgumentParser(
         description="Okey Vision CLI - Detect tiles in an image and solve the hand arrangement."
@@ -12,18 +13,16 @@ def main():
     parser.add_argument(
         "--image",
         required=True,
-        help="Path to the image file containing the okey board / tiles."
+        help="Path to the image file containing the okey board / tiles.",
     )
     parser.add_argument(
-        "--model",
-        required=True,
-        help="Path to the local YOLO model (.pt) file."
+        "--model", required=True, help="Path to the local YOLO model (.pt) file."
     )
     parser.add_argument(
         "--confidence",
         type=float,
         default=0.25,
-        help="Confidence threshold for YOLO model detections (default: 0.25)."
+        help="Confidence threshold for YOLO model detections (default: 0.25).",
     )
 
     args = parser.parse_args()
@@ -38,12 +37,11 @@ def main():
 
     print("=== Okey Vision CLI ===")
     print(f"Loading YOLO model from: {args.model}")
-    
+
     # Initialize LocalYoloProvider as the detection/classification pipeline
     try:
         provider = LocalYoloProvider(
-            model_path=args.model,
-            confidence_threshold=args.confidence
+            model_path=args.model, confidence_threshold=args.confidence
         )
     except Exception as e:
         print(f"Error initializing local YOLO provider: {e}", file=sys.stderr)
@@ -53,7 +51,7 @@ def main():
     engine = VisionSolverEngine(pipeline=provider)
 
     print(f"Processing image frame: {args.image}...")
-    
+
     # Analyze image path
     try:
         result = engine.analyze_frame(args.image)
@@ -72,13 +70,18 @@ def main():
     print(f"Melds Found: {len(arrangement.melds)}")
     for idx, meld in enumerate(arrangement.melds):
         tiles_str = ", ".join([f"{t.color.value}-{t.value}" for t in meld.tiles])
-        print(f"  Meld #{idx+1} ({meld.type.value}): [{tiles_str}] - score: {meld.score}")
+        print(
+            f"  Meld #{idx + 1} ({meld.type.value}): [{tiles_str}] - score: {meld.score}"
+        )
 
     if arrangement.remainingTiles:
-        leftovers = ", ".join([f"{t.color.value}-{t.value}" for t in arrangement.remainingTiles])
+        leftovers = ", ".join(
+            [f"{t.color.value}-{t.value}" for t in arrangement.remainingTiles]
+        )
         print(f"Remaining Tiles: [{leftovers}]")
     else:
         print("Remaining Tiles: [None]")
+
 
 if __name__ == "__main__":
     main()

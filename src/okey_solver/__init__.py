@@ -5,7 +5,11 @@ from okey_solver.solver import SolverEngine
 from okey_solver.meld_generator import MeldGenerator
 from okey_solver.backtracking_solver import BacktrackingSolver
 from okey_solver.pair_finder import PairFinder
-from okey_solver.errors import OkeySolverError, InvalidTileError, InvalidArrangementError
+from okey_solver.errors import (
+    OkeySolverError,
+    InvalidTileError,
+    InvalidArrangementError,
+)
 
 __all__ = [
     "TileColor",
