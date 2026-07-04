@@ -2,14 +2,10 @@
 import os
 import sys
 import tempfile
+
 import telebot
-import numpy as np
-import cv2
 
-# Ensure correct module resolution paths
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-
-from okey_solver import SolverEngine, OkeyMeta, TileColor
+from okey_solver import OkeyMeta, TileColor
 from okey_vision import VisionSolverEngine, LocalYoloProvider
 
 # Token is fetched from environment variable E.g. export TELEGRAM_BOT_TOKEN="your-token"
@@ -22,7 +18,7 @@ if not BOT_TOKEN:
         "Warning: TELEGRAM_BOT_TOKEN environment variable is not set. The bot cannot start."
     )
 
-bot = telebot.TeleBot(BOT_TOKEN) if BOT_TOKEN else None
+bot = telebot.TeleBot(BOT_TOKEN or "dummy-token")
 
 # Keep track of user session meta (Okey Meta info)
 user_okey_meta = {}  # E.g. {chat_id: OkeyMeta}
@@ -135,6 +131,8 @@ def handle_photo(message):
 
 
 if __name__ == "__main__":
-    if bot:
-        print("Starting Telegram Bot listener...")
-        bot.infinity_polling()
+    if not BOT_TOKEN:
+        print("Error: The bot cannot start because TELEGRAM_BOT_TOKEN is not set.")
+        sys.exit(1)
+    print("Starting Telegram Bot listener...")
+    bot.infinity_polling()
