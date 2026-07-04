@@ -23,6 +23,7 @@ from okey_vision.providers import (
     parse_default_tile,
 )
 from okey_vision.orchestrator import VisionOrchestrator, VisionSolverEngine
+from okey_vision.errors import OkeyVisionError, VisionPipelineError, ProviderError
 
 __all__ = [
     "BoundingBox",
@@ -47,4 +48,7 @@ __all__ = [
     "parse_default_tile",
     "VisionOrchestrator",
     "VisionSolverEngine",
+    "OkeyVisionError",
+    "VisionPipelineError",
+    "ProviderError",
 ]

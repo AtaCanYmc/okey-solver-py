@@ -4,7 +4,7 @@ import sys
 import numpy as np
 
 # Ensure correct module resolution paths
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../src")))
 
 from okey_solver import SolverEngine, Tile, TileColor, OkeyMeta
 from okey_vision import VisionSolverEngine, DefaultVisionPipeline, Detection, BoundingBox
