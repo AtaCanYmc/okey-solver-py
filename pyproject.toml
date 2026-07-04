@@ -2,6 +2,7 @@
 name = "okey-solver-py"
 version = "0.1.1"
 description = "Python port of okey-solver-ts and okey-vision-ts"
+readme = "README.md"
 authors = ["Ata Can Yaymacı <atacanymc@gmail.com>"]
 packages = [
     { include = "okey_solver", from = "src" },
