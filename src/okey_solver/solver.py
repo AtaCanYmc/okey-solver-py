@@ -1,17 +1,29 @@
 # okey_solver/solver.py
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from okey_solver.types import Tile, Arrangement, OkeyMeta, TileColor
 from okey_solver.rules import OkeyRuleValidator
 from okey_solver.meld_generator import MeldGenerator
 from okey_solver.backtracking_solver import BacktrackingSolver
+from okey_solver.greedy_solver import GreedySolver
 from okey_solver.pair_finder import PairFinder
 
 
 class SolverEngine:
-    def __init__(self, validator: Optional[OkeyRuleValidator] = None):
+    def __init__(
+        self,
+        validator: Optional[OkeyRuleValidator] = None,
+        strategy: str = "backtracking",
+    ):
         val = validator or OkeyRuleValidator()
         self.meld_generator = MeldGenerator(val)
-        self.backtracking_solver = BacktrackingSolver()
+        self.strategy = strategy.lower()
+        
+        self.solver: Union[BacktrackingSolver, GreedySolver]
+        if self.strategy == "greedy":
+            self.solver = GreedySolver()
+        else:
+            self.solver = BacktrackingSolver()
+            
         self.pair_finder = PairFinder()
 
     def find_best_arrangement(
@@ -36,7 +48,7 @@ class SolverEngine:
             normal_tiles, wildcards, okey_meta
         )
 
-        return self.backtracking_solver.solve(resolved_tiles, all_possible_melds)
+        return self.solver.solve(resolved_tiles, all_possible_melds)
 
     def find_best_pairs(
         self, tiles: List[Tile], okey_meta: Optional[OkeyMeta] = None

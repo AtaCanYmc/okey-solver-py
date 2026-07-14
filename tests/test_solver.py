@@ -184,3 +184,22 @@ def test_solver_backtracking_memoization():
     # Scores: 4 * 6 = 24 vs 3 * 24 = 24.
     assert result.totalScore == 24
 
+
+def test_greedy_solver_strategy():
+    engine = SolverEngine(strategy="greedy")
+    tiles = [
+        create_tile("r7", TileColor.RED, 7),
+        create_tile("r8", TileColor.RED, 8),
+        create_tile("r9", TileColor.RED, 9),
+        create_tile("r10", TileColor.RED, 10),
+        create_tile("b10", TileColor.BLUE, 10),
+        create_tile("y10", TileColor.YELLOW, 10),
+    ]
+    result = engine.find_best_arrangement(tiles)
+    # Greedy solver picks highest score first (r7-r8-r9-r10 -> score 34)
+    # leaving r10 unavailable for the second meld (r10-b10-y10 -> score 30).
+    assert result.totalScore == 34
+    assert len(result.melds) == 1
+    assert result.melds[0].tiles[0].id == "r7"
+
+
