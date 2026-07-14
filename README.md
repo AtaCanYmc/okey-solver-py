@@ -15,7 +15,7 @@
 - **Backtracking Solver**: Optimal arrangement solver for Okey / Rummikub games.
 - **Pairs/Double Play**: Find identical pairs.
 - **Extensible Vision Engine**: Process frames natively with numpy arrays (OpenCV), PIL, base64 strings, bytes, and paths.
-- **Provider Support**: Native local YOLO (`ultralytics`) and cloud Roboflow API implementations.
+- **Provider Support**: Native local YOLO (`ultralytics`), cloud Roboflow API (`RoboflowProvider`), and Roboflow Inference SDK Workflows (`RoboflowWorkflowProvider`).
 
 ---
 
@@ -41,7 +41,23 @@ result = SolverEngine.findBestArrangement(tiles)
 print(result.totalScore)
 ```
 
-### With Roboflow Provider
+### With Roboflow Workflow Provider
+```python
+from okey_vision import RoboflowWorkflowProvider, VisionSolverEngine
+
+provider = RoboflowWorkflowProvider(
+    api_key="your_api_key",
+    workspace_name="ata-dc7ry",
+    workflow_id="rummikub-vrummikub-p8akb-vr0ef-3-yolov8n-t1-logic"
+)
+
+engine = VisionSolverEngine(provider)
+result = engine.analyze_frame("image_path.jpg")
+print(result["tiles"])
+print(result["arrangement"])
+```
+
+### With Roboflow Object Detection Provider
 ```python
 from okey_vision import RoboflowProvider, VisionSolverEngine
 
