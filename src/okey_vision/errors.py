@@ -1,10 +1,11 @@
 # src/okey_vision/errors.py
+from typing import Any, Dict, Optional
 
 
 class OkeyVisionError(Exception):
     """Base exception for all okey-vision errors."""
 
-    def __init__(self, message: str, payload: dict = None):
+    def __init__(self, message: str, payload: Optional[Dict[str, Any]] = None):
         super().__init__(message)
         self.payload = payload or {}
 

@@ -39,6 +39,9 @@ class RoboflowProvider:
                 "RoboflowProvider requires raw image bytes or numpy array."
             )
 
+    def preprocess(self, frame: FrameInput) -> FrameInput:
+        return frame
+
     def detect(self, frame: FrameInput) -> List[Detection]:
         import base64
 
@@ -113,7 +116,7 @@ class RoboflowProvider:
                 response = await client.post(
                     url,
                     params=params,
-                    data=img_b64,
+                    content=img_b64,
                     headers={"Content-Type": "application/x-www-form-urlencoded"},
                     timeout=10.0,
                 )

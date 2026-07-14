@@ -22,6 +22,9 @@ class LocalYoloProvider:
         self.color_aliases = {**DEFAULT_COLOR_ALIASES, **(label_map or {})}
         self.confidence_threshold = confidence_threshold
 
+    def preprocess(self, frame: FrameInput) -> FrameInput:
+        return frame
+
     def detect(self, frame: FrameInput) -> List[Detection]:
         # Ultralytics accepts numpy arrays natively
         if not isinstance(frame.data, np.ndarray):

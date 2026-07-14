@@ -29,6 +29,9 @@ class RoboflowWorkflowProvider:
         self.workflow_id = workflow_id
         self.color_aliases = {**DEFAULT_COLOR_ALIASES, **(label_map or {})}
 
+    def preprocess(self, frame: FrameInput) -> FrameInput:
+        return frame
+
     def detect(self, frame: FrameInput) -> List[Detection]:
         import cv2
 

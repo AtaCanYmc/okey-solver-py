@@ -1,5 +1,5 @@
 # okey_solver/backtracking_solver.py
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from okey_solver.types import Tile, Meld, Arrangement
 
 
@@ -15,13 +15,13 @@ class BacktrackingSolver:
         max_score = 0
 
         # State: a dictionary of available tile counts
-        tile_counts = {}
+        tile_counts: Dict[str, int] = {}
         for t in resolved_tiles:
             tile_counts[t.id] = tile_counts.get(t.id, 0) + 1
 
         # Memoization cache
         # key: (current_index, sorted_tuple_of_remaining_tile_ids) -> max_score_achievable
-        memo = {}
+        memo: Dict[Tuple[int, tuple], int] = {}
 
         def get_remaining_key() -> tuple:
             # Only include tiles that have count > 0, sorted by id

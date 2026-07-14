@@ -9,32 +9,34 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.10'
+        uses: actions/checkout@v4
 
       - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
+        run: pipx install poetry
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'poetry'
 
       - name: Install dependencies
-        run: |
-          poetry install --all-extras
+        run: poetry install --all-extras
 
       - name: Run Ruff Linter
-        run: |
-          poetry run ruff check src/okey_solver src/okey_vision tests
+        run: poetry run ruff check src/okey_solver src/okey_vision tests
 
       - name: Run Ruff Formatter check
-        run: |
-          poetry run ruff format --check src/okey_solver src/okey_vision tests
+        run: poetry run ruff format --check src/okey_solver src/okey_vision tests
 
-      - name: Run pytest
-        run: |
-          PYTHONPATH=src poetry run pytest
+      - name: Run Type Checker (Mypy)
+        run: poetry run mypy src/okey_solver src/okey_vision
+
+      - name: Run tests with Coverage
+        run: poetry run pytest --cov=src --cov-report=xml --cov-fail-under=70

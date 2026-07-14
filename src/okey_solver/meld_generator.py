@@ -84,15 +84,15 @@ class MeldGenerator:
             if num_wildcards > 0:
                 if len(available_colors) >= 2 and num_wildcards >= 1:
                     combinations2 = list(itertools.combinations(available_colors, 2))
-                    for combo in combinations2:
-                        used_colors = set(combo)
+                    for combo2 in combinations2:
+                        used_colors = set(combo2)
                         candidate_third_colors = [
                             c.value for c in ALL_COLORS if c.value not in used_colors
                         ]
                         if not candidate_third_colors:
                             continue
 
-                        tile_options = [colors[c] for c in combo]
+                        tile_options = [colors[c] for c in combo2]
                         cartesian_tiles = list(itertools.product(*tile_options))
 
                         for tile_set in cartesian_tiles:
