@@ -20,6 +20,7 @@ from okey_vision.engine import (
 from okey_vision.providers import (
     LocalYoloProvider,
     RoboflowProvider,
+    RoboflowWorkflowProvider,
     parse_default_tile,
 )
 from okey_vision.orchestrator import VisionOrchestrator, VisionSolverEngine
@@ -45,6 +46,7 @@ __all__ = [
     "VisionEngine",
     "LocalYoloProvider",
     "RoboflowProvider",
+    "RoboflowWorkflowProvider",
     "parse_default_tile",
     "VisionOrchestrator",
     "VisionSolverEngine",
