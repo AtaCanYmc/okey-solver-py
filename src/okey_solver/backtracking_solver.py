@@ -14,63 +14,63 @@ class BacktrackingSolver:
         best_arrangement: List[Meld] = []
         max_score = 0
 
-        def can_form_meld(needed_tiles: List[Tile], pool: List[Tile]) -> bool:
-            pool_counts: Dict[str, int] = {}
-            for t in pool:
-                pool_counts[t.id] = pool_counts.get(t.id, 0) + 1
+        # State: a dictionary of available tile counts
+        tile_counts = {}
+        for t in resolved_tiles:
+            tile_counts[t.id] = tile_counts.get(t.id, 0) + 1
 
-            needed_counts: Dict[str, int] = {}
-            for t in needed_tiles:
-                needed_counts[t.id] = needed_counts.get(t.id, 0) + 1
+        # Memoization cache
+        # key: (current_index, sorted_tuple_of_remaining_tile_ids) -> max_score_achievable
+        memo = {}
 
-            for tile_id, count in needed_counts.items():
-                if pool_counts.get(tile_id, 0) < count:
-                    return False
-            return True
-
-        def remove_tiles_from_pool(
-            used_tiles: List[Tile], pool: List[Tile]
-        ) -> List[Tile]:
-            remaining = list(pool)
-            for used in used_tiles:
-                for idx, t in enumerate(remaining):
-                    if t.id == used.id:
-                        remaining.pop(idx)
-                        break
-            return remaining
-
-        def calculate_arrangement_score(melds: List[Meld]) -> int:
-            score = 0
-            for meld in melds:
-                score += sum(t.value for t in meld.tiles)
-            return score
+        def get_remaining_key() -> tuple:
+            # Only include tiles that have count > 0, sorted by id
+            return tuple(sorted(tid for tid, cnt in tile_counts.items() for _ in range(cnt)))
 
         def search(
             current_arrangement: List[Meld],
-            remaining_pool: List[Tile],
             current_index: int,
+            current_score: int,
         ):
             nonlocal max_score, best_arrangement
-            current_score = calculate_arrangement_score(current_arrangement)
 
             if current_score > max_score:
                 max_score = current_score
                 best_arrangement = list(current_arrangement)
 
+            # Check cache
+            state_key = (current_index, get_remaining_key())
+            if state_key in memo and memo[state_key] >= current_score:
+                return
+            memo[state_key] = current_score
+
             for i in range(current_index, len(all_possible_melds)):
                 candidate_meld = all_possible_melds[i]
 
-                if can_form_meld(candidate_meld.tiles, remaining_pool):
-                    next_remaining_pool = remove_tiles_from_pool(
-                        candidate_meld.tiles, remaining_pool
-                    )
+                # Check if we can form candidate_meld using the current tile_counts
+                can_form = True
+                temp_dec = []
+                for t in candidate_meld.tiles:
+                    if tile_counts.get(t.id, 0) > 0:
+                        tile_counts[t.id] -= 1
+                        temp_dec.append(t.id)
+                    else:
+                        can_form = False
+                        break
+
+                if can_form:
+                    meld_score = sum(t.value for t in candidate_meld.tiles)
                     current_arrangement.append(candidate_meld)
 
-                    search(current_arrangement, next_remaining_pool, i + 1)
+                    search(current_arrangement, i + 1, current_score + meld_score)
 
                     current_arrangement.pop()
 
-        search([], resolved_tiles, 0)
+                # Revert decrementing
+                for tid in temp_dec:
+                    tile_counts[tid] += 1
+
+        search([], 0, 0)
 
         used_ids = set()
         for m in best_arrangement:

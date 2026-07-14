@@ -4,7 +4,9 @@
 class OkeySolverError(Exception):
     """Base exception for all okey-solver errors."""
 
-    pass
+    def __init__(self, message: str, payload: dict = None):
+        super().__init__(message)
+        self.payload = payload or {}
 
 
 class InvalidTileError(OkeySolverError):

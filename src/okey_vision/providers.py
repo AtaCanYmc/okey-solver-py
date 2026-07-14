@@ -1,10 +1,14 @@
 # okey_vision/providers.py
 import re
+import difflib
+import logging
 from typing import Dict, List, Optional, Union
 import numpy as np
 import requests
 from okey_vision.types import FrameInput, Detection, BoundingBox
 from okey_solver.types import Tile, TileColor
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_COLOR_ALIASES = {
     "RED": TileColor.RED,
@@ -35,45 +39,48 @@ def parse_default_tile(
     if "JOKER" in normalized:
         return Tile(id=detection.id, color=TileColor.JOKER, value=0)
 
-    # Regex search for color and number
-    # Support "RED-5", "5-BLUE", "5R", "B12" etc.
-    left_match = re.match(r"^([A-ZÇĞİÖŞÜ]+)[\s\-_]?(\d{1,2})$", normalized)
-    parsed_color = None
-    parsed_value = None
+    # Extract alphabetic (including Turkish characters) and digit-like characters
+    letters = "".join(c for c in normalized if c.isalpha() or c in "ÇĞİÖŞÜ")
+    digits_raw = "".join(c for c in normalized if c.isdigit() or c in "SOILZGB")
 
-    if left_match:
-        parsed_color = left_match.group(1)
-        parsed_value = left_match.group(2)
+    # OCR Digit Confusions translation
+    confusion_map = {
+        'S': '5',
+        'O': '0',
+        'I': '1',
+        'L': '1',
+        'Z': '2',
+        'G': '6',
+        'B': '8'
+    }
+    digits_cleaned = "".join(confusion_map.get(c, c) for c in digits_raw)
+
+    # Match color using fuzzy matching against aliases
+    matched_color_key = None
+    if letters in color_aliases:
+        matched_color_key = letters
     else:
-        right_match = re.match(r"^(\d{1,2})[\s\-_]?([A-ZÇĞİÖŞÜ]+)$", normalized)
-        if right_match:
-            parsed_color = right_match.group(2)
-            parsed_value = right_match.group(1)
+        # Try close matches using difflib
+        matches = difflib.get_close_matches(letters, list(color_aliases.keys()), n=1, cutoff=0.5)
+        if matches:
+            matched_color_key = matches[0]
 
-    if not parsed_color or not parsed_value:
-        # Fallback to general finding
-        # e.g. look for digits
-        digits = re.findall(r"\d+", normalized)
-        letters = re.findall(r"[A-ZÇĞİÖŞÜ]+", normalized)
-        if digits and letters:
-            parsed_value = digits[0]
-            parsed_color = letters[0]
-
-    if not parsed_color or not parsed_value:
+    if not matched_color_key:
         raise ValueError(
-            f'Unsupported tile label "{raw_label}" on detection {detection.id or index}.'
+            f'Unsupported or unrecognized tile color/label "{raw_label}" on detection {detection.id or index}.'
         )
 
-    color = color_aliases.get(parsed_color)
-    if not color:
+    color = color_aliases[matched_color_key]
+
+    if not digits_cleaned.isdigit():
         raise ValueError(
-            f'Unsupported tile color "{parsed_color}" on detection {detection.id or index}.'
+            f'No valid numeric value found in label "{raw_label}" on detection {detection.id or index}.'
         )
 
-    value = int(parsed_value)
+    value = int(digits_cleaned)
     if value < 1 or value > 13:
         raise ValueError(
-            f'Unsupported tile value "{parsed_value}" on detection {detection.id or index}.'
+            f'Unsupported tile value "{value}" on detection {detection.id or index}.'
         )
 
     return Tile(id=detection.id, color=color, value=value)
@@ -160,21 +167,23 @@ class RoboflowProvider:
         self.color_aliases = {**DEFAULT_COLOR_ALIASES, **(label_map or {})}
         self.base_url = "https://detect.roboflow.com"
 
-    def detect(self, frame: FrameInput) -> List[Detection]:
+    def _prepare_image_bytes(self, frame: FrameInput) -> bytes:
         import cv2
-        import base64
 
-        # Needs to upload image to Roboflow
         if isinstance(frame.data, np.ndarray):
             _, buffer = cv2.imencode(".jpg", frame.data)
-            img_bytes = buffer.tobytes()
+            return buffer.tobytes()
         elif isinstance(frame.data, (bytes, bytearray)):
-            img_bytes = bytes(frame.data)
+            return bytes(frame.data)
         else:
             raise ValueError(
                 "RoboflowProvider requires raw image bytes or numpy array."
             )
 
+    def detect(self, frame: FrameInput) -> List[Detection]:
+        import base64
+
+        img_bytes = self._prepare_image_bytes(frame)
         img_b64 = base64.b64encode(img_bytes).decode("utf-8")
 
         url = f"{self.base_url}/{self.model_id}/{self.model_version}"
@@ -197,7 +206,57 @@ class RoboflowProvider:
         detections: List[Detection] = []
 
         for idx, pred in enumerate(predictions):
-            # Roboflow coordinates are center x, center y
+            cx = pred["x"]
+            cy = pred["y"]
+            width = pred["width"]
+            height = pred["height"]
+            conf = pred["confidence"]
+            label = pred["class"]
+
+            left = cx - width / 2
+            top = cy - height / 2
+
+            detections.append(
+                Detection(
+                    id=pred.get("prediction_id", f"rf-{idx}"),
+                    bounds=BoundingBox(x=left, y=top, width=width, height=height),
+                    confidence=conf,
+                    label=label,
+                    metadata=pred,
+                )
+            )
+
+        return detections
+
+    async def detect_async(self, frame: FrameInput) -> List[Detection]:
+        import base64
+        import httpx
+
+        img_bytes = self._prepare_image_bytes(frame)
+        img_b64 = base64.b64encode(img_bytes).decode("utf-8")
+
+        url = f"{self.base_url}/{self.model_id}/{self.model_version}"
+        params = {"api_key": self.api_key}
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                url,
+                params=params,
+                data=img_b64,
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+                timeout=30.0,
+            )
+
+        if response.status_code != 200:
+            raise ValueError(
+                f"Roboflow API returned error {response.status_code}: {response.text}"
+            )
+
+        res_data = response.json()
+        predictions = res_data.get("predictions", [])
+        detections: List[Detection] = []
+
+        for idx, pred in enumerate(predictions):
             cx = pred["x"]
             cy = pred["y"]
             width = pred["width"]
@@ -262,12 +321,16 @@ class RoboflowWorkflowProvider:
                 "RoboflowWorkflowProvider requires FrameInput.data to be numpy.ndarray or bytes."
             )
 
-        result = self.client.run_workflow(
-            workspace_name=self.workspace_name,
-            workflow_id=self.workflow_id,
-            images={"image": image_input},
-            use_cache=True,
-        )
+        try:
+            result = self.client.run_workflow(
+                workspace_name=self.workspace_name,
+                workflow_id=self.workflow_id,
+                images={"image": image_input},
+                use_cache=True,
+            )
+        except Exception as e:
+            logger.error(f"Error querying Roboflow Workflow API: {e}", exc_info=True)
+            raise e
 
         if isinstance(result, list):
             if not result:
@@ -288,6 +351,8 @@ class RoboflowWorkflowProvider:
                         if "x" in val[0] and "y" in val[0] and "width" in val[0] and "confidence" in val[0]:
                             predictions = val
                             break
+        else:
+            logger.warning(f"Unexpected workflow result format: {type(result)}")
 
         detections: List[Detection] = []
         for idx, pred in enumerate(predictions):
@@ -313,9 +378,13 @@ class RoboflowWorkflowProvider:
 
         return detections
 
+    async def detect_async(self, frame: FrameInput) -> List[Detection]:
+        import asyncio
+
+        return await asyncio.to_thread(self.detect, frame)
+
     def classify(self, frame: FrameInput, detections: List[Detection]) -> List[Tile]:
         return [
             parse_default_tile(det, idx, self.color_aliases)
             for idx, det in enumerate(detections)
         ]
-
