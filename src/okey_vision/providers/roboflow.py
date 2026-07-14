@@ -3,7 +3,7 @@ import numpy as np
 import requests
 import httpx
 from okey_vision.types import FrameInput, Detection, BoundingBox
-from okey_solver.types import Tile, TileColor
+from okey_core.types import Tile, TileColor
 from okey_vision.errors import ProviderError
 from okey_vision.providers.base import DEFAULT_COLOR_ALIASES, parse_default_tile
 

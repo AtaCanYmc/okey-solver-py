@@ -9,7 +9,7 @@ from okey_vision.frame_adapter import (
     default_frame_adapters,
     adapt_to_frame_input,
 )
-from okey_solver.types import Tile
+from okey_core.types import Tile
 
 logger = logging.getLogger(__name__)
 

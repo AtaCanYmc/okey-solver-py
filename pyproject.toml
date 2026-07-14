@@ -6,7 +6,8 @@ readme = "README.md"
 authors = ["Ata Can Yaymacı <atacanymc@gmail.com>"]
 packages = [
     { include = "okey_solver", from = "src" },
-    { include = "okey_vision", from = "src" }
+    { include = "okey_vision", from = "src" },
+    { include = "okey_core", from = "src" }
 ]
 
 [tool.poetry.dependencies]

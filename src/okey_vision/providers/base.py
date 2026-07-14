@@ -2,8 +2,8 @@ import re
 import difflib
 from typing import Dict
 from okey_vision.types import Detection
-from okey_solver.types import Tile, TileColor
-from okey_solver.errors import InvalidTileError
+from okey_core.types import Tile, TileColor
+from okey_core.errors import InvalidTileError
 
 DEFAULT_COLOR_ALIASES = {
     "RED": TileColor.RED,
