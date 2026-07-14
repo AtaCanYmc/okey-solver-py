@@ -95,7 +95,7 @@ async def solve_vision(
             okey_meta = OkeyMeta(color=okey_meta_color, value=okey_meta_value)
 
         engine = VisionSolverEngine(pipeline=pipeline, okey_meta=okey_meta)
-        result = engine.analyze_frame(content)
+        result = await engine.analyze_frame_async(content)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

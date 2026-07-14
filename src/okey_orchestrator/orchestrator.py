@@ -1,4 +1,5 @@
 # okey_orchestrator/orchestrator.py
+import asyncio
 from typing import Any, List, Optional, Callable
 from okey_vision.engine import VisionEngine, VisionPipeline
 from okey_solver.solver import SolverEngine
@@ -27,6 +28,12 @@ class VisionOrchestrator:
         arrangement = output if isinstance(output, Arrangement) else None
         return OrchestratorResult(tiles=tiles, arrangement=arrangement)
 
+    async def analyze_frame_async(self, frame: Any) -> OrchestratorResult:
+        tiles = await self.vision_engine.process_frame_async(frame)
+        output = await asyncio.to_thread(self.solve_tiles, tiles, self.okey_meta)
+        arrangement = output if isinstance(output, Arrangement) else None
+        return OrchestratorResult(tiles=tiles, arrangement=arrangement)
+
 
 class VisionSolverEngine:
     """
@@ -50,3 +57,6 @@ class VisionSolverEngine:
 
     def analyze_frame(self, frame: Any) -> OrchestratorResult:
         return self.orchestrator.analyze_frame(frame)
+
+    async def analyze_frame_async(self, frame: Any) -> OrchestratorResult:
+        return await self.orchestrator.analyze_frame_async(frame)

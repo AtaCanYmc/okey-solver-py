@@ -39,3 +39,40 @@ def test_dependency_override_mock():
     finally:
         app.dependency_overrides.clear()
 
+
+def test_solve_vision_endpoint():
+    from okey_vision.types import Detection, BoundingBox
+    from okey_core.types import Tile, TileColor
+
+    class MockPipeline:
+        async def preprocess_async(self, frame):
+            return frame
+
+        async def detect_async(self, frame):
+            return [
+                Detection(
+                    id="v1",
+                    bounds=BoundingBox(x=0, y=0, width=1, height=1),
+                    confidence=0.95,
+                    label="RED-5"
+                )
+            ]
+
+        async def classify_async(self, frame, detections):
+            return [Tile(id="red-5", color=TileColor.RED, value=5)]
+
+    from okey_server.app import get_vision_pipeline
+    app.dependency_overrides[get_vision_pipeline] = lambda: MockPipeline()
+    try:
+        import io
+        file_data = {"file": ("test.jpg", io.BytesIO(b"dummydata"), "image/jpeg")}
+        response = client.post("/vision/solve", files=file_data)
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["tiles"]) == 1
+        assert data["tiles"][0]["id"] == "red-5"
+        assert data["arrangement"]["totalScore"] == 0
+    finally:
+        app.dependency_overrides.clear()
+
+
