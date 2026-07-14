@@ -37,13 +37,15 @@ class RoboflowWorkflowProvider:
     def detect(self, frame: FrameInput) -> List[Detection]:
         import cv2
 
+        image_input: np.ndarray
         if isinstance(frame.data, np.ndarray):
             image_input = frame.data
         elif isinstance(frame.data, (bytes, bytearray)):
             nparr = np.frombuffer(frame.data, np.uint8)
-            image_input = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-            if image_input is None:
+            decoded = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            if decoded is None:
                 raise ValueError("Could not decode image bytes into numpy array.")
+            image_input = decoded
         else:
             raise ValueError(
                 "RoboflowWorkflowProvider requires FrameInput.data to be numpy.ndarray or bytes."

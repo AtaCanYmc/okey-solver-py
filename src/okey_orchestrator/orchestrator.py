@@ -2,7 +2,7 @@
 import asyncio
 from typing import Any, List, Optional, Callable
 from okey_vision.engine import VisionEngine, VisionPipeline
-from okey_solver.solver import SolverEngine
+from okey_solver import create_standard_okey_solver, SolverEngine
 from okey_core.types import Tile, Arrangement, OkeyMeta, OrchestratorResult
 
 
@@ -15,11 +15,13 @@ class VisionOrchestrator:
             Callable[[List[Tile], Optional[OkeyMeta]], Any]
         ] = None,
         observers: Optional[List[Any]] = None,
+        solver: Optional[SolverEngine] = None,
     ):
         self.vision_engine = VisionEngine(pipeline, observers=observers)
         self.okey_meta = okey_meta
+        self.solver = solver or create_standard_okey_solver()
         self.solve_tiles = solve_tiles_fn or (
-            lambda tiles, meta: SolverEngine.findBestArrangement(tiles, meta)
+            lambda tiles, meta: self.solver.find_best_arrangement(tiles, meta)
         )
 
     def analyze_frame(self, frame: Any) -> OrchestratorResult:
@@ -47,12 +49,16 @@ class VisionSolverEngine:
             Callable[[List[Tile], Optional[OkeyMeta]], Arrangement]
         ] = None,
         observers: Optional[List[Any]] = None,
+        solver: Optional[SolverEngine] = None,
+        strategy: str = "backtracking",
     ):
+        resolved_solver = solver or create_standard_okey_solver(strategy=strategy)
         self.orchestrator = VisionOrchestrator(
             pipeline=pipeline,
             okey_meta=okey_meta,
             solve_tiles_fn=solve_tiles_fn,
             observers=observers,
+            solver=resolved_solver,
         )
 
     def analyze_frame(self, frame: Any) -> OrchestratorResult:

@@ -43,29 +43,31 @@ class LocalYoloProvider:
         if not results:
             return detections
 
-        result = results[0]
+        results_list = list(results)
+        result = results_list[0]
         boxes = result.boxes
 
-        for idx, box in enumerate(boxes):
-            cls_idx = int(box.cls[0])
-            label = self.model.names[cls_idx]
-            conf = float(box.conf[0])
+        if boxes is not None:
+            for idx, box in enumerate(boxes):
+                cls_idx = int(box.cls[0])
+                label = self.model.names[cls_idx]
+                conf = float(box.conf[0])
 
-            xyxy = box.xyxy[0].tolist()
-            left = xyxy[0]
-            top = xyxy[1]
-            width = xyxy[2] - left
-            height = xyxy[3] - top
+                xyxy = box.xyxy[0].tolist()
+                left = xyxy[0]
+                top = xyxy[1]
+                width = xyxy[2] - left
+                height = xyxy[3] - top
 
-            detections.append(
-                Detection(
-                    id=f"yolo-{idx}",
-                    bounds=BoundingBox(x=left, y=top, width=width, height=height),
-                    confidence=conf,
-                    label=label,
-                    metadata={"class_index": cls_idx},
+                detections.append(
+                    Detection(
+                        id=f"yolo-{idx}",
+                        bounds=BoundingBox(x=left, y=top, width=width, height=height),
+                        confidence=conf,
+                        label=label,
+                        metadata={"class_index": cls_idx},
+                    )
                 )
-            )
 
         return detections
 

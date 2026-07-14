@@ -249,3 +249,18 @@ def test_custom_label_parser_strategy():
     assert tiles[0].color == TileColor.RED
     assert tiles[0].value == 12
 
+
+def test_vision_solver_engine_strategy_selection():
+    from okey_orchestrator import VisionSolverEngine
+    from okey_solver import create_standard_okey_solver
+    
+    # Verify strategy string configuration
+    engine_greedy = VisionSolverEngine(pipeline=None, strategy="greedy")
+    assert engine_greedy.orchestrator.solver.strategy == "greedy"
+    
+    # Verify solver instance configuration
+    custom_solver = create_standard_okey_solver(strategy="backtracking")
+    engine_custom = VisionSolverEngine(pipeline=None, solver=custom_solver)
+    assert engine_custom.orchestrator.solver == custom_solver
+
+
