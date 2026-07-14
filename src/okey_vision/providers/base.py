@@ -3,6 +3,7 @@ import difflib
 from typing import Dict
 from okey_vision.types import Detection
 from okey_solver.types import Tile, TileColor
+from okey_solver.errors import InvalidTileError
 
 DEFAULT_COLOR_ALIASES = {
     "RED": TileColor.RED,
@@ -25,8 +26,9 @@ def parse_default_tile(
 ) -> Tile:
     raw_label = detection.label
     if not raw_label:
-        raise ValueError(
-            f"Detection {detection.id or index} does not contain a class label."
+        raise InvalidTileError(
+            f"Detection {detection.id or index} does not contain a class label.",
+            payload={"detection_id": detection.id or str(index)}
         )
 
     normalized = raw_label.strip().upper()
@@ -71,8 +73,9 @@ def parse_default_tile(
                 matched_color_key = matches[0]
                 value_part = "".join(c for c in normalized if c.isdigit())
             else:
-                raise ValueError(
-                    f'Unsupported or unrecognized tile color/label "{raw_label}" on detection {detection.id or index}.'
+                raise InvalidTileError(
+                    f'Unsupported or unrecognized tile color/label "{raw_label}" on detection {detection.id or index}.',
+                    payload={"detection_id": detection.id or str(index), "label": raw_label}
                 )
 
     color = color_aliases[matched_color_key]
@@ -93,14 +96,16 @@ def parse_default_tile(
     digits_cleaned = "".join(confusion_map.get(c, c) for c in value_part if c.isdigit() or c in confusion_map)
 
     if not digits_cleaned.isdigit():
-        raise ValueError(
-            f'No valid numeric value found in label "{raw_label}" on detection {detection.id or index}.'
+        raise InvalidTileError(
+            f'No valid numeric value found in label "{raw_label}" on detection {detection.id or index}.',
+            payload={"detection_id": detection.id or str(index), "label": raw_label}
         )
 
     value = int(digits_cleaned)
     if value < 1 or value > 13:
-        raise ValueError(
-            f'Unsupported tile value "{value}" on detection {detection.id or index}.'
+        raise InvalidTileError(
+            f'Unsupported tile value "{value}" on detection {detection.id or index}.',
+            payload={"detection_id": detection.id or str(index), "label": raw_label, "parsed_value": value}
         )
 
     return Tile(id=detection.id, color=color, value=value)

@@ -1,4 +1,7 @@
 # okey_solver/__init__.py
+import logging
+
+logging.getLogger("okey_solver").addHandler(logging.NullHandler())
 from okey_solver.types import TileColor, Tile, MeldType, Meld, OkeyMeta, Arrangement
 from okey_solver.rules import OkeyRuleValidator, RuleValidator
 from okey_solver.solver import SolverEngine

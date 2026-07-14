@@ -6,9 +6,12 @@ from okey_vision import (
     Detection,
     BoundingBox,
     parse_default_tile,
+    OkeyVisionError,
+    ProviderError,
 )
-from okey_vision.providers import DEFAULT_COLOR_ALIASES
+from okey_vision.providers import DEFAULT_COLOR_ALIASES, RoboflowProvider, RoboflowWorkflowProvider
 from okey_solver import Tile, TileColor, MeldType
+from okey_solver.errors import InvalidTileError
 
 
 def test_vision_solver_engine_orchestration():
@@ -131,3 +134,64 @@ async def test_async_vision_pipeline():
     assert "detect_async" in calls
     assert len(res) == 1
     assert res[0].color == TileColor.RED
+
+
+def test_invalid_tile_error_raised():
+    with pytest.raises(InvalidTileError) as exc_info:
+        parse_default_tile(
+            Detection(id="det-err", bounds=BoundingBox(x=0, y=0, width=10, height=10), confidence=0.9, label="INVALIDCOLOR-99"),
+            0, DEFAULT_COLOR_ALIASES
+        )
+    assert "Unsupported or unrecognized tile color" in str(exc_info.value)
+    assert exc_info.value.payload["label"] == "INVALIDCOLOR-99"
+
+    with pytest.raises(InvalidTileError) as exc_info:
+        parse_default_tile(
+            Detection(id="det-err-val", bounds=BoundingBox(x=0, y=0, width=10, height=10), confidence=0.9, label="RED-99"),
+            0, DEFAULT_COLOR_ALIASES
+        )
+    assert "Unsupported tile value" in str(exc_info.value)
+    assert exc_info.value.payload["parsed_value"] == 99
+
+
+def test_provider_error_raised_roboflow():
+    # Use an invalid URL or key to trigger ProviderError
+    provider = RoboflowProvider(api_key="invalid_key")
+    provider.base_url = "https://invalid.domain.roboflow.com"
+    
+    from okey_vision.types import FrameInput
+    dummy_frame = FrameInput(data=np.zeros((100, 100, 3), dtype=np.uint8))
+    
+    with pytest.raises(ProviderError) as exc_info:
+        provider.detect(dummy_frame)
+    assert "Roboflow API connection failed" in str(exc_info.value)
+
+
+@pytest.mark.asyncio
+async def test_provider_error_raised_roboflow_async():
+    provider = RoboflowProvider(api_key="invalid_key")
+    provider.base_url = "https://invalid.domain.roboflow.com"
+    
+    from okey_vision.types import FrameInput
+    dummy_frame = FrameInput(data=np.zeros((100, 100, 3), dtype=np.uint8))
+    
+    with pytest.raises(ProviderError) as exc_info:
+        await provider.detect_async(dummy_frame)
+    assert "Roboflow API async connection failed" in str(exc_info.value)
+
+
+def test_workflow_provider_error_unexpected_response():
+    provider = RoboflowWorkflowProvider(api_key="dummy")
+    
+    # Mocking run_workflow to return an invalid format
+    class MockClient:
+        def run_workflow(self, **kwargs):
+            return "not-a-dict-or-list"
+            
+    provider.client = MockClient()
+    from okey_vision.types import FrameInput
+    dummy_frame = FrameInput(data=np.zeros((100, 100, 3), dtype=np.uint8))
+    
+    with pytest.raises(ProviderError) as exc_info:
+        provider.detect(dummy_frame)
+    assert "Unexpected workflow result type" in str(exc_info.value)

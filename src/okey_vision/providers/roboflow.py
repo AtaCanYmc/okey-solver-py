@@ -1,8 +1,10 @@
 from typing import Dict, List, Optional, Union
 import numpy as np
 import requests
+import httpx
 from okey_vision.types import FrameInput, Detection, BoundingBox
 from okey_solver.types import Tile, TileColor
+from okey_vision.errors import ProviderError
 from okey_vision.providers.base import DEFAULT_COLOR_ALIASES, parse_default_tile
 
 
@@ -46,19 +48,31 @@ class RoboflowProvider:
         url = f"{self.base_url}/{self.model_id}/{self.model_version}"
         params = {"api_key": self.api_key}
 
-        response = requests.post(
-            url,
-            params=params,
-            data=img_b64,
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-        )
-
-        if response.status_code != 200:
-            raise ValueError(
-                f"Roboflow API returned error {response.status_code}: {response.text}"
+        try:
+            response = requests.post(
+                url,
+                params=params,
+                data=img_b64,
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+                timeout=10.0,
             )
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            status_code = getattr(getattr(e, "response", None), "status_code", None)
+            response_text = getattr(getattr(e, "response", None), "text", "")
+            raise ProviderError(
+                f"Roboflow API connection failed: {e}",
+                payload={"url": url, "status_code": status_code, "response_text": response_text}
+            ) from e
 
-        res_data = response.json()
+        try:
+            res_data = response.json()
+        except ValueError as e:
+            raise ProviderError(
+                "Failed to parse Roboflow API response JSON.",
+                payload={"response_text": response.text}
+            ) from e
+
         predictions = res_data.get("predictions", [])
         detections: List[Detection] = []
 
@@ -87,7 +101,6 @@ class RoboflowProvider:
 
     async def detect_async(self, frame: FrameInput) -> List[Detection]:
         import base64
-        import httpx
 
         img_bytes = self._prepare_image_bytes(frame)
         img_b64 = base64.b64encode(img_bytes).decode("utf-8")
@@ -95,21 +108,32 @@ class RoboflowProvider:
         url = f"{self.base_url}/{self.model_id}/{self.model_version}"
         params = {"api_key": self.api_key}
 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                url,
-                params=params,
-                data=img_b64,
-                headers={"Content-Type": "application/x-www-form-urlencoded"},
-                timeout=30.0,
-            )
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    url,
+                    params=params,
+                    data=img_b64,
+                    headers={"Content-Type": "application/x-www-form-urlencoded"},
+                    timeout=10.0,
+                )
+                response.raise_for_status()
+        except httpx.HTTPError as e:
+            status_code = getattr(getattr(e, "response", None), "status_code", None)
+            response_text = getattr(getattr(e, "response", None), "text", "")
+            raise ProviderError(
+                f"Roboflow API async connection failed: {e}",
+                payload={"url": url, "status_code": status_code, "response_text": response_text}
+            ) from e
 
-        if response.status_code != 200:
-            raise ValueError(
-                f"Roboflow API returned error {response.status_code}: {response.text}"
-            )
+        try:
+            res_data = response.json()
+        except ValueError as e:
+            raise ProviderError(
+                "Failed to parse Roboflow API response JSON.",
+                payload={"response_text": response.text}
+            ) from e
 
-        res_data = response.json()
         predictions = res_data.get("predictions", [])
         detections: List[Detection] = []
 

@@ -3,6 +3,7 @@ from typing import Dict, List, Optional
 import numpy as np
 from okey_vision.types import FrameInput, Detection, BoundingBox
 from okey_solver.types import Tile, TileColor
+from okey_vision.errors import ProviderError
 from okey_vision.providers.base import DEFAULT_COLOR_ALIASES, parse_default_tile
 
 logger = logging.getLogger(__name__)
@@ -52,7 +53,10 @@ class RoboflowWorkflowProvider:
             )
         except Exception as e:
             logger.error(f"Error querying Roboflow Workflow API: {e}", exc_info=True)
-            raise e
+            raise ProviderError(
+                f"Error querying Roboflow Workflow API: {e}",
+                payload={"workspace_name": self.workspace_name, "workflow_id": self.workflow_id}
+            ) from e
 
         if isinstance(result, list):
             if not result:
@@ -73,8 +77,16 @@ class RoboflowWorkflowProvider:
                         if "x" in val[0] and "y" in val[0] and "width" in val[0] and "confidence" in val[0]:
                             predictions = val
                             break
+            if not predictions and result:
+                raise ProviderError(
+                    "Unexpected format: could not extract predictions list from workflow result dictionary.",
+                    payload={"result": result}
+                )
         else:
-            logger.warning(f"Unexpected workflow result format: {type(result)}")
+            raise ProviderError(
+                f"Unexpected workflow result type: expected dict or list, got {type(result)}",
+                payload={"result": result}
+            )
 
         detections: List[Detection] = []
         for idx, pred in enumerate(predictions):
