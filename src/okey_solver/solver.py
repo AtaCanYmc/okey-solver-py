@@ -1,6 +1,6 @@
 # okey_solver/solver.py
 from typing import List, Optional, Dict, Any, Union
-from okey_solver.types import Tile, Arrangement, OkeyMeta, TileColor
+from okey_core.types import Tile, Arrangement, OkeyMeta, TileColor
 from okey_solver.rules import OkeyRuleValidator
 from okey_solver.meld_generator import MeldGenerator
 from okey_solver.backtracking_solver import BacktrackingSolver
@@ -66,23 +66,30 @@ class SolverEngine:
                 resolved.append(t)
         return resolved
 
-    # Static wrappers
-    _default_engine = None
-
-    @classmethod
-    def get_default_engine(cls):
-        if cls._default_engine is None:
-            cls._default_engine = SolverEngine()
-        return cls._default_engine
-
+    # Legacy static wrappers - no longer uses singleton global state
     @classmethod
     def findBestArrangement(
         cls, tiles: List[Tile], okey_meta: Optional[OkeyMeta] = None
     ) -> Arrangement:
-        return cls.get_default_engine().find_best_arrangement(tiles, okey_meta)
+        return cls().find_best_arrangement(tiles, okey_meta)
 
     @classmethod
     def findBestPairs(
         cls, tiles: List[Tile], okey_meta: Optional[OkeyMeta] = None
     ) -> Dict[str, Any]:
-        return cls.get_default_engine().find_best_pairs(tiles, okey_meta)
+        return cls().find_best_pairs(tiles, okey_meta)
+
+
+def create_standard_okey_solver(strategy: str = "backtracking") -> SolverEngine:
+    """
+    Standard Okey (Rummikub) kurallarına uygun bir SolverEngine örneği döner.
+    """
+    return SolverEngine(validator=OkeyRuleValidator(), strategy=strategy)
+
+
+def create_okey_101_solver(strategy: str = "backtracking") -> SolverEngine:
+    """
+    Okey 101 kurallarına uygun bir SolverEngine örneği döner (Gelecekteki genişletmeler için hazırdır).
+    """
+    # 101 validator rule engine placeholder
+    return SolverEngine(validator=OkeyRuleValidator(), strategy=strategy)

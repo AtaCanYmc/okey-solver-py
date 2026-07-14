@@ -203,3 +203,14 @@ def test_greedy_solver_strategy():
     assert result.melds[0].tiles[0].id == "r7"
 
 
+def test_solver_factories():
+    from okey_solver import create_standard_okey_solver, create_okey_101_solver
+    
+    standard_solver = create_standard_okey_solver(strategy="greedy")
+    assert standard_solver.strategy == "greedy"
+    
+    okey_101_solver = create_okey_101_solver(strategy="backtracking")
+    assert okey_101_solver.strategy == "backtracking"
+
+
+
