@@ -25,6 +25,8 @@ from okey_vision.providers import (
     RoboflowProvider,
     RoboflowWorkflowProvider,
     parse_default_tile,
+    LabelParserStrategy,
+    FuzzyLabelParser,
 )
 from okey_vision.errors import OkeyVisionError, VisionPipelineError, ProviderError
 
@@ -50,6 +52,8 @@ __all__ = [
     "RoboflowProvider",
     "RoboflowWorkflowProvider",
     "parse_default_tile",
+    "LabelParserStrategy",
+    "FuzzyLabelParser",
     "OkeyVisionError",
     "VisionPipelineError",
     "ProviderError",

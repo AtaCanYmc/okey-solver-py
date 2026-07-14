@@ -60,27 +60,30 @@ def main():
         sys.exit(1)
 
     print("\n[Vision Detections]")
-    print(f"Detected Tiles ({len(result['tiles'])} total):")
-    for t in result["tiles"]:
+    print(f"Detected Tiles ({len(result.tiles)} total):")
+    for t in result.tiles:
         print(f"  - Tile ID: {t.id} | {t.color.value} {t.value}")
 
     print("\n[Optimal Arrangement Results]")
-    arrangement = result["arrangement"]
-    print(f"Total Score: {arrangement.totalScore}")
-    print(f"Melds Found: {len(arrangement.melds)}")
-    for idx, meld in enumerate(arrangement.melds):
-        tiles_str = ", ".join([f"{t.color.value}-{t.value}" for t in meld.tiles])
-        print(
-            f"  Meld #{idx + 1} ({meld.type.value}): [{tiles_str}] - score: {meld.score}"
-        )
+    arrangement = result.arrangement
+    if arrangement:
+        print(f"Total Score: {arrangement.totalScore}")
+        print(f"Melds Found: {len(arrangement.melds)}")
+        for idx, meld in enumerate(arrangement.melds):
+            tiles_str = ", ".join([f"{t.color.value}-{t.value}" for t in meld.tiles])
+            print(
+                f"  Meld #{idx + 1} ({meld.type.value}): [{tiles_str}] - score: {meld.score}"
+            )
 
-    if arrangement.remainingTiles:
-        leftovers = ", ".join(
-            [f"{t.color.value}-{t.value}" for t in arrangement.remainingTiles]
-        )
-        print(f"Remaining Tiles: [{leftovers}]")
+        if arrangement.remainingTiles:
+            leftovers = ", ".join(
+                [f"{t.color.value}-{t.value}" for t in arrangement.remainingTiles]
+            )
+            print(f"Remaining Tiles: [{leftovers}]")
+        else:
+            print("Remaining Tiles: [None]")
     else:
-        print("Remaining Tiles: [None]")
+        print("No valid arrangement was found.")
 
 
 if __name__ == "__main__":

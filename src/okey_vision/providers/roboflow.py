@@ -5,7 +5,7 @@ import httpx
 from okey_vision.types import FrameInput, Detection, BoundingBox
 from okey_core.types import Tile, TileColor
 from okey_vision.errors import ProviderError
-from okey_vision.providers.base import DEFAULT_COLOR_ALIASES, parse_default_tile
+from okey_vision.providers.base import DEFAULT_COLOR_ALIASES, parse_default_tile, LabelParserStrategy, FuzzyLabelParser
 
 
 class RoboflowProvider:
@@ -19,12 +19,14 @@ class RoboflowProvider:
         model_id: str = "rummikub-5bldr",
         model_version: Union[int, str] = 1,
         label_map: Optional[Dict[str, TileColor]] = None,
+        parser: Optional[LabelParserStrategy] = None,
     ):
         self.api_key = api_key
         self.model_id = model_id
         self.model_version = str(model_version)
         self.color_aliases = {**DEFAULT_COLOR_ALIASES, **(label_map or {})}
         self.base_url = "https://detect.roboflow.com"
+        self.parser = parser or FuzzyLabelParser()
 
     def _prepare_image_bytes(self, frame: FrameInput) -> bytes:
         import cv2
@@ -165,6 +167,6 @@ class RoboflowProvider:
 
     def classify(self, frame: FrameInput, detections: List[Detection]) -> List[Tile]:
         return [
-            parse_default_tile(det, idx, self.color_aliases)
+            self.parser.parse_tile(det, idx, self.color_aliases)
             for idx, det in enumerate(detections)
         ]

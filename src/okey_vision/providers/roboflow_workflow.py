@@ -4,7 +4,7 @@ import numpy as np
 from okey_vision.types import FrameInput, Detection, BoundingBox
 from okey_core.types import Tile, TileColor
 from okey_vision.errors import ProviderError
-from okey_vision.providers.base import DEFAULT_COLOR_ALIASES, parse_default_tile
+from okey_vision.providers.base import DEFAULT_COLOR_ALIASES, parse_default_tile, LabelParserStrategy, FuzzyLabelParser
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +21,7 @@ class RoboflowWorkflowProvider:
         workflow_id: str = "rummikub-vrummikub-p8akb-vr0ef-3-yolov8n-t1-logic",
         api_url: str = "https://serverless.roboflow.com",
         label_map: Optional[Dict[str, TileColor]] = None,
+        parser: Optional[LabelParserStrategy] = None,
     ):
         from inference_sdk import InferenceHTTPClient
 
@@ -28,6 +29,7 @@ class RoboflowWorkflowProvider:
         self.workspace_name = workspace_name
         self.workflow_id = workflow_id
         self.color_aliases = {**DEFAULT_COLOR_ALIASES, **(label_map or {})}
+        self.parser = parser or FuzzyLabelParser()
 
     def preprocess(self, frame: FrameInput) -> FrameInput:
         return frame
@@ -122,6 +124,6 @@ class RoboflowWorkflowProvider:
 
     def classify(self, frame: FrameInput, detections: List[Detection]) -> List[Tile]:
         return [
-            parse_default_tile(det, idx, self.color_aliases)
+            self.parser.parse_tile(det, idx, self.color_aliases)
             for idx, det in enumerate(detections)
         ]

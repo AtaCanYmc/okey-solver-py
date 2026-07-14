@@ -65,10 +65,11 @@ def test_vision_solver_engine_orchestration():
     res = engine.analyze_frame(dummy_img)
 
     assert calls == ["preprocess", "detect", "classify"]
-    assert len(res["tiles"]) == 3
-    assert len(res["arrangement"].melds) == 1
-    assert res["arrangement"].melds[0].type == MeldType.SERI
-    assert res["arrangement"].totalScore == 18
+    assert len(res.tiles) == 3
+    assert res.arrangement is not None
+    assert len(res.arrangement.melds) == 1
+    assert res.arrangement.melds[0].type == MeldType.SERI
+    assert res.arrangement.totalScore == 18
 
 
 def test_fuzzy_label_matching():
@@ -129,7 +130,7 @@ async def test_async_vision_pipeline():
     engine = VisionSolverEngine(pipeline)
     dummy_img = np.zeros((100, 100, 3), dtype=np.uint8)
 
-    res = await engine.vision_engine.process_frame_async(dummy_img)
+    res = await engine.orchestrator.vision_engine.process_frame_async(dummy_img)
 
     assert "detect_async" in calls
     assert len(res) == 1
@@ -195,3 +196,56 @@ def test_workflow_provider_error_unexpected_response():
     with pytest.raises(ProviderError) as exc_info:
         provider.detect(dummy_frame)
     assert "Unexpected workflow result type" in str(exc_info.value)
+
+
+@pytest.mark.asyncio
+async def test_async_observers():
+    import asyncio
+    from okey_vision import VisionEngine
+    events = []
+
+    class AsyncObserver:
+        async def on_event(self, event):
+            await asyncio.sleep(0.001)
+            events.append(event)
+
+    class SyncObserver:
+        def on_event(self, event):
+            events.append(event)
+
+    pipeline = DefaultVisionPipeline(
+        detect_fn=lambda f: [],
+        classify_fn=lambda f, d: []
+    )
+    engine = VisionEngine(pipeline, observers=[AsyncObserver(), SyncObserver()])
+    
+    await engine.emit_async({"test": "data"})
+    assert len(events) == 2
+
+
+def test_custom_label_parser_strategy():
+    from okey_vision.providers import LocalYoloProvider
+    
+    class CustomParser:
+        def parse_tile(self, detection, index, color_aliases):
+            return Tile(id=detection.id, color=TileColor.RED, value=12)
+
+    # Mock ultralytics module to prevent loading a real model file
+    import sys
+    from unittest.mock import MagicMock
+    sys.modules["ultralytics"] = MagicMock()
+
+    provider = LocalYoloProvider(model_path="dummy.pt", parser=CustomParser())
+    
+    dummy_detection = Detection(
+        id="custom",
+        bounds=BoundingBox(x=0, y=0, width=1, height=1),
+        confidence=0.9,
+        label="BLUE-10"
+    )
+    
+    tiles = provider.classify(None, [dummy_detection])
+    assert len(tiles) == 1
+    assert tiles[0].color == TileColor.RED
+    assert tiles[0].value == 12
+

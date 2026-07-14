@@ -1,6 +1,6 @@
 # okey_core/types.py
 from enum import Enum
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel, Field
 
 
@@ -40,3 +40,9 @@ class Arrangement(BaseModel):
     melds: List[Meld] = Field(default_factory=list)
     remainingTiles: List[Tile] = Field(default_factory=list)
     totalScore: int = 0
+
+
+class OrchestratorResult(BaseModel):
+    tiles: List[Tile]
+    arrangement: Optional[Arrangement] = None
+

@@ -1,6 +1,7 @@
 # okey_solver/greedy_solver.py
 from typing import List
-from okey_solver.types import Tile, Meld, Arrangement
+from okey_core.types import Tile, Meld, Arrangement
+from okey_solver.dto import LightTile, LightMeld
 
 
 class GreedySolver:
@@ -13,15 +14,23 @@ class GreedySolver:
     def solve(
         self, resolved_tiles: List[Tile], all_possible_melds: List[Meld]
     ) -> Arrangement:
+        pydantic_tile_map = {t.id: t for t in resolved_tiles}
+
+        # DTO Mapping
+        light_melds = []
+        for m in all_possible_melds:
+            m_tiles = [LightTile(t.id, t.color, t.value) for t in m.tiles]
+            light_melds.append(LightMeld(m.type, m_tiles, m.score))
+
         # Sort melds by score (highest score first)
         # In case of tie, prefer melds with fewer tiles (higher efficiency)
         sorted_melds = sorted(
-            all_possible_melds,
+            light_melds,
             key=lambda m: (m.score, -len(m.tiles)),
             reverse=True,
         )
 
-        chosen_melds: List[Meld] = []
+        chosen_melds: List[LightMeld] = []
         available_ids = {t.id for t in resolved_tiles}
         total_score = 0
 
@@ -35,10 +44,19 @@ class GreedySolver:
                     available_ids.remove(t.id)
 
         # Collect remaining unused tiles
-        remaining_tiles = [t for t in resolved_tiles if t.id in available_ids]
+        remaining_tiles = [pydantic_tile_map[tid] for tid in available_ids]
+
+        best_melds = []
+        for lm in chosen_melds:
+            tiles_mapped = [pydantic_tile_map[lt.id] for lt in lm.tiles]
+            best_melds.append(Meld(type=lm.type, tiles=tiles_mapped, score=lm.score))
+
+        # Sort remaining tiles to match the original ordering
+        original_id_order = {t.id: idx for idx, t in enumerate(resolved_tiles)}
+        remaining_tiles.sort(key=lambda t: original_id_order[t.id])
 
         return Arrangement(
-            melds=chosen_melds,
+            melds=best_melds,
             remainingTiles=remaining_tiles,
             totalScore=total_score,
         )

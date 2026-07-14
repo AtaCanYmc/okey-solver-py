@@ -20,45 +20,42 @@ class VisionObserver(Protocol):
 
 class VisionPipeline(Protocol):
     def preprocess(self, frame: FrameInput) -> FrameInput: ...
-
     def detect(self, frame: FrameInput) -> List[Detection]: ...
-
     def classify(
-            self, frame: FrameInput, detections: List[Detection]
+        self, frame: FrameInput, detections: List[Detection]
     ) -> List[Tile]: ...
 
 
 class AsyncVisionPipeline(Protocol):
     async def preprocess_async(self, frame: FrameInput) -> FrameInput: ...
-
     async def detect_async(self, frame: FrameInput) -> List[Detection]: ...
-
     async def classify_async(
-            self, frame: FrameInput, detections: List[Detection]
+        self, frame: FrameInput, detections: List[Detection]
     ) -> List[Tile]: ...
 
 
-async def _run_async(fn: Callable, *args: Any, **kwargs: Any) -> Any:
-    """Helper to run a function asynchronously, wrapping blocking functions in a thread pool."""
-    if asyncio.iscoroutinefunction(fn):
-        return await fn(*args, **kwargs)
-    return await asyncio.to_thread(fn, *args, **kwargs)
+async def _run_async(func: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
+    return await asyncio.to_thread(func, *args, **kwargs)
 
 
 class DefaultVisionPipeline:
+    """
+    Wraps standard functions to adapt them to VisionPipeline.
+    If async methods are supplied, it supports AsyncVisionPipeline.
+    """
+
     def __init__(
-            self,
-            detect_fn: Callable[[FrameInput], List[Detection]],
-            classify_fn: Callable[[FrameInput, List[Detection]], List[Tile]],
-            preprocess_fn: Optional[Callable[[FrameInput], FrameInput]] = None,
-            detect_async_fn: Optional[Callable[[FrameInput], Any]] = None,
-            classify_async_fn: Optional[Callable[[FrameInput, List[Detection]], Any]] = None,
-            preprocess_async_fn: Optional[Callable[[FrameInput], Any]] = None,
+        self,
+        detect_fn: Callable[[FrameInput], List[Detection]],
+        classify_fn: Callable[[FrameInput, List[Detection]], List[Tile]],
+        preprocess_fn: Optional[Callable[[FrameInput], FrameInput]] = None,
+        detect_async_fn: Optional[Callable[[FrameInput], Any]] = None,
+        classify_async_fn: Optional[Callable[[FrameInput, List[Detection]], Any]] = None,
+        preprocess_async_fn: Optional[Callable[[FrameInput], Any]] = None,
     ):
         self._detect = detect_fn
         self._classify = classify_fn
         self._preprocess = preprocess_fn or (lambda f: f)
-
         self._detect_async = detect_async_fn
         self._classify_async = classify_async_fn
         self._preprocess_async = preprocess_async_fn
@@ -74,28 +71,30 @@ class DefaultVisionPipeline:
 
     async def preprocess_async(self, frame: FrameInput) -> FrameInput:
         if self._preprocess_async:
-            return await _run_async(self._preprocess_async, frame)
+            return await self._preprocess_async(frame)
         return await _run_async(self._preprocess, frame)
 
     async def detect_async(self, frame: FrameInput) -> List[Detection]:
         if self._detect_async:
-            return await _run_async(self._detect_async, frame)
+            res = await self._detect_async(frame)
+            return res
         return await _run_async(self._detect, frame)
 
     async def classify_async(
-            self, frame: FrameInput, detections: List[Detection]
+        self, frame: FrameInput, detections: List[Detection]
     ) -> List[Tile]:
         if self._classify_async:
-            return await _run_async(self._classify_async, frame, detections)
+            res = await self._classify_async(frame, detections)
+            return res
         return await _run_async(self._classify, frame, detections)
 
 
 class VisionEngine:
     def __init__(
-            self,
-            pipeline: Any,  # Can be VisionPipeline or AsyncVisionPipeline
-            frame_adapters: Optional[List[FrameAdapter]] = None,
-            observers: Optional[List[VisionObserver]] = None,
+        self,
+        pipeline: Any,  # Can be VisionPipeline or AsyncVisionPipeline
+        frame_adapters: Optional[List[FrameAdapter]] = None,
+        observers: Optional[List[VisionObserver]] = None,
     ):
         self.pipeline = pipeline
         self.frame_adapters = frame_adapters or default_frame_adapters()
@@ -109,8 +108,23 @@ class VisionEngine:
             try:
                 observer.on_event(event)
             except Exception as e:
-                # Use logger instead of print
                 logger.error(f"Observer error: {e}", exc_info=True)
+
+    async def emit_async(self, event: Dict[str, Any]) -> None:
+        tasks = []
+        for observer in self.observers:
+            try:
+                if asyncio.iscoroutinefunction(observer.on_event):
+                    tasks.append(observer.on_event(event))
+                else:
+                    tasks.append(asyncio.to_thread(observer.on_event, event))
+            except Exception as e:
+                logger.error(f"Observer initialization error: {e}", exc_info=True)
+        if tasks:
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            for res in results:
+                if isinstance(res, Exception):
+                    logger.error(f"Observer async execution error: {res}", exc_info=True)
 
     def process_frame(self, frame_input: Any) -> List[Tile]:
         frame = adapt_to_frame_input(frame_input, self.frame_adapters)
@@ -198,13 +212,13 @@ class VisionEngine:
 
         # Preprocess
         start_time = time.time()
-        self.emit({"stage": "preprocess", "status": "start", "timestamp": start_time})
+        await self.emit_async({"stage": "preprocess", "status": "start", "timestamp": start_time})
         try:
             if hasattr(self.pipeline, "preprocess_async"):
                 prepared_frame = await self.pipeline.preprocess_async(frame)
             else:
                 prepared_frame = await asyncio.to_thread(self.pipeline.preprocess, frame)
-            self.emit(
+            await self.emit_async(
                 {
                     "stage": "preprocess",
                     "status": "end",
@@ -213,7 +227,7 @@ class VisionEngine:
                 }
             )
         except Exception as e:
-            self.emit(
+            await self.emit_async(
                 {
                     "stage": "preprocess",
                     "status": "error",
@@ -225,13 +239,13 @@ class VisionEngine:
 
         # Detect
         start_time = time.time()
-        self.emit({"stage": "detect", "status": "start", "timestamp": start_time})
+        await self.emit_async({"stage": "detect", "status": "start", "timestamp": start_time})
         try:
             if hasattr(self.pipeline, "detect_async"):
                 detections = await self.pipeline.detect_async(prepared_frame)
             else:
                 detections = await asyncio.to_thread(self.pipeline.detect, prepared_frame)
-            self.emit(
+            await self.emit_async(
                 {
                     "stage": "detect",
                     "status": "end",
@@ -240,7 +254,7 @@ class VisionEngine:
                 }
             )
         except Exception as e:
-            self.emit(
+            await self.emit_async(
                 {
                     "stage": "detect",
                     "status": "error",
@@ -252,13 +266,13 @@ class VisionEngine:
 
         # Classify
         start_time = time.time()
-        self.emit({"stage": "classify", "status": "start", "timestamp": start_time})
+        await self.emit_async({"stage": "classify", "status": "start", "timestamp": start_time})
         try:
             if hasattr(self.pipeline, "classify_async"):
                 tiles = await self.pipeline.classify_async(prepared_frame, detections)
             else:
                 tiles = await asyncio.to_thread(self.pipeline.classify, prepared_frame, detections)
-            self.emit(
+            await self.emit_async(
                 {
                     "stage": "classify",
                     "status": "end",
@@ -267,7 +281,7 @@ class VisionEngine:
                 }
             )
         except Exception as e:
-            self.emit(
+            await self.emit_async(
                 {
                     "stage": "classify",
                     "status": "error",
