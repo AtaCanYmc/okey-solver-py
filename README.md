@@ -15,7 +15,7 @@ The codebase is split into fully decoupled, high-performance packages under the 
 1. **`okey_core`**: Holds shared domain types (`Tile`, `Meld`, `Arrangement`, `OrchestratorResult`) and exceptions. Completely independent.
 2. **`okey_solver`**: Stateless mathematical engines to calculate optimal run/group melds and identical pairs. Uses slot-based DTO mapping (`LightTile`, `LightMeld`) to bypass Pydantic model loop overhead.
 3. **`okey_vision`**: Translates frames (numpy, PIL, bytes, base64) into tile predictions. Supports local YOLO or cloud Roboflow models. Decoupled from solver logic via an injectable `LabelParserStrategy`.
-4. **`okey_orchestrator`**: Orchestrates pipelines by feeding vision outputs into the mathematical solver.
+4. **`okey_orchestrator`**: Orchestrates pipelines by feeding vision outputs into the mathematical solver. Supports passing custom `SolverEngine` instances or a `strategy` string directly during setup.
 5. **`okey_server`**: A microservice framework delivering endpoints for vision processing and hand arrangement.
 
 ---
@@ -73,7 +73,7 @@ result = solver.find_best_arrangement(tiles)
 print(f"Total Score: {result.totalScore}")
 ```
 
-### 2. End-to-End Orchestration (Vision + Solver)
+### 2. End-to-End Orchestration (Vision + Solver with Strategy Selection)
 ```python
 from okey_vision import LocalYoloProvider
 from okey_orchestrator import VisionSolverEngine
@@ -81,8 +81,9 @@ from okey_orchestrator import VisionSolverEngine
 # 1. Initialize vision model provider
 provider = LocalYoloProvider(model_path="./models/yolov8_best.pt")
 
-# 2. Bind pipeline inside the orchestrator
-engine = VisionSolverEngine(pipeline=provider)
+# 2. Bind pipeline inside the orchestrator with strategy selection
+# Supports strategy="backtracking", strategy="greedy", or passing a custom solver=instance
+engine = VisionSolverEngine(pipeline=provider, strategy="greedy")
 
 # 3. Analyze layout image and solve
 result = engine.analyze_frame("board_layout.jpg")
