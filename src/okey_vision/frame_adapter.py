@@ -2,10 +2,21 @@
 import base64
 import os
 from typing import Any, List, Protocol
-from PIL import Image
-import numpy as np
-import cv2
 from okey_vision.types import FrameInput
+
+# Lazy imports for optional dependencies
+try:
+    from PIL import Image
+    HAS_PIL = True
+except ImportError:
+    HAS_PIL = False
+
+try:
+    import numpy as np
+    import cv2
+    HAS_CV2_NUMPY = True
+except ImportError:
+    HAS_CV2_NUMPY = False
 
 
 class FrameAdapter(Protocol):
@@ -23,19 +34,34 @@ class PassthroughFrameAdapter:
 
 class NumpyFrameAdapter:
     def can_adapt(self, input_val: Any) -> bool:
+        if not HAS_CV2_NUMPY:
+            return False
         return isinstance(input_val, np.ndarray)
 
     def adapt(self, input_val: Any) -> FrameInput:
+        if not HAS_CV2_NUMPY:
+            raise ImportError(
+                "NumpyFrameAdapter requires numpy. Install it using 'pip install okey-solver-py[vision]'"
+            )
         h, w = input_val.shape[:2]
         return FrameInput(data=input_val, width=w, height=h, mime_type="image/raw")
 
 
 class PILImageFrameAdapter:
     def can_adapt(self, input_val: Any) -> bool:
+        if not HAS_PIL:
+            return False
         return isinstance(input_val, Image.Image)
 
     def adapt(self, input_val: Any) -> FrameInput:
-        # Convert PIL to Numpy array
+        if not HAS_PIL:
+            raise ImportError(
+                "PILImageFrameAdapter requires Pillow. Install it using 'pip install okey-solver-py[vision]'"
+            )
+        if not HAS_CV2_NUMPY:
+            raise ImportError(
+                "PILImageFrameAdapter requires numpy. Install it using 'pip install okey-solver-py[vision]'"
+            )
         arr = np.array(input_val)
         w, h = input_val.size
         return FrameInput(data=arr, width=w, height=h, mime_type="image/raw")
@@ -46,6 +72,10 @@ class BytesFrameAdapter:
         return isinstance(input_val, (bytes, bytearray))
 
     def adapt(self, input_val: Any) -> FrameInput:
+        if not HAS_CV2_NUMPY:
+            raise ImportError(
+                "BytesFrameAdapter requires numpy and opencv-python. Install it using 'pip install okey-solver-py[vision]'"
+            )
         nparr = np.frombuffer(input_val, np.uint8)
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         if img is None:
@@ -63,6 +93,10 @@ class Base64FrameAdapter:
         )  # Simple heuristic
 
     def adapt(self, input_val: Any) -> FrameInput:
+        if not HAS_CV2_NUMPY:
+            raise ImportError(
+                "Base64FrameAdapter requires numpy and opencv-python. Install it using 'pip install okey-solver-py[vision]'"
+            )
         if "," in input_val:
             input_val = input_val.split(",")[1]
         decoded = base64.b64decode(input_val)
@@ -79,6 +113,10 @@ class PathFrameAdapter:
         return isinstance(input_val, str) and os.path.exists(input_val)
 
     def adapt(self, input_val: Any) -> FrameInput:
+        if not HAS_CV2_NUMPY:
+            raise ImportError(
+                "PathFrameAdapter requires numpy and opencv-python. Install it using 'pip install okey-solver-py[vision]'"
+            )
         img = cv2.imread(input_val)
         if img is None:
             raise ValueError(f"Could not read image from path: {input_val}")

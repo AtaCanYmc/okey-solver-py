@@ -14,23 +14,22 @@ class BacktrackingSolver:
         best_arrangement: List[Meld] = []
         max_score = 0
 
-        # State: a dictionary of available tile counts
-        tile_counts: Dict[str, int] = {}
-        for t in resolved_tiles:
-            tile_counts[t.id] = tile_counts.get(t.id, 0) + 1
+        # Map each unique tile ID to a specific bit index (0 to N-1)
+        tile_to_bit = {t.id: idx for idx, t in enumerate(resolved_tiles)}
+        num_tiles = len(resolved_tiles)
+
+        # Initial mask: all bits set to 1 (all tiles available)
+        initial_mask = (1 << num_tiles) - 1
 
         # Memoization cache
-        # key: (current_index, sorted_tuple_of_remaining_tile_ids) -> max_score_achievable
-        memo: Dict[Tuple[int, tuple], int] = {}
-
-        def get_remaining_key() -> tuple:
-            # Only include tiles that have count > 0, sorted by id
-            return tuple(sorted(tid for tid, cnt in tile_counts.items() for _ in range(cnt)))
+        # key: (current_index, mask) -> max_score_achievable
+        memo: Dict[Tuple[int, int], int] = {}
 
         def search(
             current_arrangement: List[Meld],
             current_index: int,
             current_score: int,
+            mask: int,
         ):
             nonlocal max_score, best_arrangement
 
@@ -39,7 +38,7 @@ class BacktrackingSolver:
                 best_arrangement = list(current_arrangement)
 
             # Check cache
-            state_key = (current_index, get_remaining_key())
+            state_key = (current_index, mask)
             if state_key in memo and memo[state_key] >= current_score:
                 return
             memo[state_key] = current_score
@@ -47,13 +46,14 @@ class BacktrackingSolver:
             for i in range(current_index, len(all_possible_melds)):
                 candidate_meld = all_possible_melds[i]
 
-                # Check if we can form candidate_meld using the current tile_counts
+                # Check if all tiles in candidate_meld are available in the current mask
                 can_form = True
-                temp_dec = []
+                meld_mask = 0
                 for t in candidate_meld.tiles:
-                    if tile_counts.get(t.id, 0) > 0:
-                        tile_counts[t.id] -= 1
-                        temp_dec.append(t.id)
+                    bit = tile_to_bit[t.id]
+                    if (mask & (1 << bit)) != 0:
+                        # Mark this bit to be cleared
+                        meld_mask |= (1 << bit)
                     else:
                         can_form = False
                         break
@@ -62,15 +62,17 @@ class BacktrackingSolver:
                     meld_score = sum(t.value for t in candidate_meld.tiles)
                     current_arrangement.append(candidate_meld)
 
-                    search(current_arrangement, i + 1, current_score + meld_score)
+                    # recurse with mask bits cleared
+                    search(
+                        current_arrangement,
+                        i + 1,
+                        current_score + meld_score,
+                        mask ^ meld_mask,
+                    )
 
                     current_arrangement.pop()
 
-                # Revert decrementing
-                for tid in temp_dec:
-                    tile_counts[tid] += 1
-
-        search([], 0, 0)
+        search([], 0, 0, initial_mask)
 
         used_ids = set()
         for m in best_arrangement:
