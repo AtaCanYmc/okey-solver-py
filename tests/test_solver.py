@@ -150,3 +150,37 @@ def test_bridge_intersection_greedy_vs_optimal():
     assert len(result.melds) == 2
     assert result.totalScore == 54
     assert len(result.remainingTiles) == 0
+
+
+def test_solver_error_payload():
+    from okey_solver.errors import OkeySolverError
+    
+    # Verify custom context payload in OkeySolverError
+    payload = {"tile_id": "r5", "reason": "invalid value"}
+    err = OkeySolverError("Error message", payload=payload)
+    assert err.payload == payload
+    assert str(err) == "Error message"
+
+
+def test_solver_backtracking_memoization():
+    # Construct a large hand with multiple potential melds to ensure backtracking solver with memoization evaluates correctly
+    tiles = [
+        create_tile("r1", TileColor.RED, 1),
+        create_tile("r2", TileColor.RED, 2),
+        create_tile("r3", TileColor.RED, 3),
+        create_tile("b1", TileColor.BLUE, 1),
+        create_tile("b2", TileColor.BLUE, 2),
+        create_tile("b3", TileColor.BLUE, 3),
+        create_tile("y1", TileColor.YELLOW, 1),
+        create_tile("y2", TileColor.YELLOW, 2),
+        create_tile("y3", TileColor.YELLOW, 3),
+        create_tile("bk1", TileColor.BLACK, 1),
+        create_tile("bk2", TileColor.BLACK, 2),
+        create_tile("bk3", TileColor.BLACK, 3),
+    ]
+    result = SolverEngine.findBestArrangement(tiles)
+    # The solver should find 4 SERI melds (RED 1-2-3, BLUE 1-2-3, YELLOW 1-2-3, BLACK 1-2-3)
+    # Or 3 PER melds of size 4 (1-1-1-1, 2-2-2-2, 3-3-3-3).
+    # Scores: 4 * 6 = 24 vs 3 * 24 = 24.
+    assert result.totalScore == 24
+

@@ -26,6 +26,7 @@ vision = ["numpy", "opencv-python", "pillow", "requests", "httpx", "ultralytics"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8,<10"
+pytest-asyncio = "^1.4.0"
 pytest-cov = ">=4.1,<7.0"
 mypy = ">=1,<3"
 ruff = ">=0.3,<0.16"
