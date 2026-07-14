@@ -2,7 +2,7 @@
 import argparse
 import sys
 import os
-from okey_vision.orchestrator import VisionSolverEngine
+from okey_orchestrator import VisionSolverEngine
 from okey_vision.providers import LocalYoloProvider
 
 

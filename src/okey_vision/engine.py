@@ -20,17 +20,21 @@ class VisionObserver(Protocol):
 
 class VisionPipeline(Protocol):
     def preprocess(self, frame: FrameInput) -> FrameInput: ...
+
     def detect(self, frame: FrameInput) -> List[Detection]: ...
+
     def classify(
-        self, frame: FrameInput, detections: List[Detection]
+            self, frame: FrameInput, detections: List[Detection]
     ) -> List[Tile]: ...
 
 
 class AsyncVisionPipeline(Protocol):
     async def preprocess_async(self, frame: FrameInput) -> FrameInput: ...
+
     async def detect_async(self, frame: FrameInput) -> List[Detection]: ...
+
     async def classify_async(
-        self, frame: FrameInput, detections: List[Detection]
+            self, frame: FrameInput, detections: List[Detection]
     ) -> List[Tile]: ...
 
 
@@ -43,13 +47,13 @@ async def _run_async(fn: Callable, *args: Any, **kwargs: Any) -> Any:
 
 class DefaultVisionPipeline:
     def __init__(
-        self,
-        detect_fn: Callable[[FrameInput], List[Detection]],
-        classify_fn: Callable[[FrameInput, List[Detection]], List[Tile]],
-        preprocess_fn: Optional[Callable[[FrameInput], FrameInput]] = None,
-        detect_async_fn: Optional[Callable[[FrameInput], Any]] = None,
-        classify_async_fn: Optional[Callable[[FrameInput, List[Detection]], Any]] = None,
-        preprocess_async_fn: Optional[Callable[[FrameInput], Any]] = None,
+            self,
+            detect_fn: Callable[[FrameInput], List[Detection]],
+            classify_fn: Callable[[FrameInput, List[Detection]], List[Tile]],
+            preprocess_fn: Optional[Callable[[FrameInput], FrameInput]] = None,
+            detect_async_fn: Optional[Callable[[FrameInput], Any]] = None,
+            classify_async_fn: Optional[Callable[[FrameInput, List[Detection]], Any]] = None,
+            preprocess_async_fn: Optional[Callable[[FrameInput], Any]] = None,
     ):
         self._detect = detect_fn
         self._classify = classify_fn
@@ -79,7 +83,7 @@ class DefaultVisionPipeline:
         return await _run_async(self._detect, frame)
 
     async def classify_async(
-        self, frame: FrameInput, detections: List[Detection]
+            self, frame: FrameInput, detections: List[Detection]
     ) -> List[Tile]:
         if self._classify_async:
             return await _run_async(self._classify_async, frame, detections)
@@ -88,10 +92,10 @@ class DefaultVisionPipeline:
 
 class VisionEngine:
     def __init__(
-        self,
-        pipeline: Any,  # Can be VisionPipeline or AsyncVisionPipeline
-        frame_adapters: Optional[List[FrameAdapter]] = None,
-        observers: Optional[List[VisionObserver]] = None,
+            self,
+            pipeline: Any,  # Can be VisionPipeline or AsyncVisionPipeline
+            frame_adapters: Optional[List[FrameAdapter]] = None,
+            observers: Optional[List[VisionObserver]] = None,
     ):
         self.pipeline = pipeline
         self.frame_adapters = frame_adapters or default_frame_adapters()

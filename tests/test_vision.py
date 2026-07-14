@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 from okey_vision import (
-    VisionSolverEngine,
     DefaultVisionPipeline,
     Detection,
     BoundingBox,
@@ -9,6 +8,7 @@ from okey_vision import (
     OkeyVisionError,
     ProviderError,
 )
+from okey_orchestrator import VisionSolverEngine
 from okey_vision.providers import DEFAULT_COLOR_ALIASES, RoboflowProvider, RoboflowWorkflowProvider
 from okey_solver import Tile, TileColor, MeldType
 from okey_solver.errors import InvalidTileError
