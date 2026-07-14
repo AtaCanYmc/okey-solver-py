@@ -1,119 +1,120 @@
-<div align="center">
-  <img src=".github/screenshots/okey-solver-logo.png" alt="Okey Solver Py Logo" width="200" />
-  <h1>okey-solver-py</h1>
-  <p>Python library for solving Okey & Rummikub tile arrangements and processing board layouts.</p>
+# okey-solver-py
 
-  [![PyPI version](https://img.shields.io/pypi/v/okey-solver-py.svg)](https://pypi.org/project/okey-solver-py/)
-  [![tests](https://img.shields.io/badge/tests-11%2F11%20passing-brightgreen)](./tests)
-  [![Python support](https://img.shields.io/badge/Python-3.10+-blue.svg)](#-requirements)
-  [![License](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](./LICENSE)
-</div>
+An enterprise-ready Python library for solving Okey & Rummikub board states, arranging hands, and processing layouts with computer vision pipelines.
+
+[![tests](https://github.com/AtaCanYmc/okey-solver-py/actions/workflows/ci.yml/badge.svg)](./actions)
+[![Python support](https://img.shields.io/badge/Python-3.10+-blue.svg)](#-requirements)
+[![License](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](./LICENSE)
 
 ---
 
-## Features
-- **Backtracking Solver**: Optimal arrangement solver for Okey / Rummikub games.
-- **Pairs/Double Play**: Find identical pairs.
-- **Extensible Vision Engine**: Process frames natively with numpy arrays (OpenCV), PIL, base64 strings, bytes, and paths.
-- **Provider Support**: Native local YOLO (`ultralytics`), cloud Roboflow API (`RoboflowProvider`), and Roboflow Inference SDK Workflows (`RoboflowWorkflowProvider`).
+## 🏗 Modular Package Architecture
+
+The codebase is split into fully decoupled, high-performance packages under the `src/` directory:
+
+1. **`okey_core`**: Holds shared domain types (`Tile`, `Meld`, `Arrangement`, `OrchestratorResult`) and exceptions. Completely independent.
+2. **`okey_solver`**: Stateless mathematical engines to calculate optimal run/group melds and identical pairs. Uses slot-based DTO mapping (`LightTile`, `LightMeld`) to bypass Pydantic model loop overhead.
+3. **`okey_vision`**: Translates frames (numpy, PIL, bytes, base64) into tile predictions. Supports local YOLO or cloud Roboflow models. Decoupled from solver logic via an injectable `LabelParserStrategy`.
+4. **`okey_orchestrator`**: Orchestrates pipelines by feeding vision outputs into the mathematical solver.
+5. **`okey_server`**: A microservice framework delivering endpoints for vision processing and hand arrangement.
 
 ---
 
-## Installation
+## 📦 Installation
+
+To install the core mathematical solver:
 ```bash
 pip install okey-solver-py
 ```
 
+To install computer vision extras:
+```bash
+pip install okey-solver-py[vision]
+```
+
+To install FastAPI server extras:
+```bash
+pip install okey-solver-py[server]
+```
+
+To install everything for development:
+```bash
+pip install okey-solver-py[vision,server]
+```
+
 ---
 
-## Quick Start
+## 💻 CLI Commands
 
-### Basic Solver Arrangement
+The package exposes the following CLI commands:
+
+- **`okey-solve`**: Solves hand arrangements from lists of tile arguments.
+- **`okey-vision`**: Runs object detection predictions on an image layout.
+- **`okey-serve`**: Launches the FastAPI REST microservice API.
+- **`okey-demo`**: Launches the local terminal solver demo application.
+
+---
+
+## 🚀 Quick Start
+
+### 1. Basic Solver Arrangement
 ```python
-from okey_solver import SolverEngine, Tile, TileColor
+from okey_solver import create_standard_okey_solver, Tile, TileColor
+
+# Instantiates a stateless, independent engine
+solver = create_standard_okey_solver(strategy="backtracking")
 
 tiles = [
     Tile(id="r5", color=TileColor.RED, value=5),
     Tile(id="r6", color=TileColor.RED, value=6),
     Tile(id="r7", color=TileColor.RED, value=7),
 ]
-result = SolverEngine.findBestArrangement(tiles)
-print(result.totalScore)
+result = solver.find_best_arrangement(tiles)
+print(f"Total Score: {result.totalScore}")
 ```
 
-### With Roboflow Workflow Provider
-```python
-from okey_vision import RoboflowWorkflowProvider, VisionSolverEngine
-
-provider = RoboflowWorkflowProvider(
-    api_key="your_api_key",
-    workspace_name="ata-dc7ry",
-    workflow_id="rummikub-vrummikub-p8akb-vr0ef-3-yolov8n-t1-logic"
-)
-
-engine = VisionSolverEngine(provider)
-result = engine.analyze_frame("image_path.jpg")
-print(result.tiles)
-print(result.arrangement)
-```
-
-### With Roboflow Object Detection Provider
-```python
-from okey_vision import RoboflowProvider
-from okey_orchestrator import VisionSolverEngine
-
-provider = RoboflowProvider(
-    api_key="your_api_key",
-    model_id="rummikub-5bldr",
-    model_version=1
-)
-
-engine = VisionSolverEngine(provider)
-result = engine.analyze_frame("image_path.jpg")
-print(result.tiles)
-print(result.arrangement)
-```
-
-### With Local YOLO Model
+### 2. End-to-End Orchestration (Vision + Solver)
 ```python
 from okey_vision import LocalYoloProvider
 from okey_orchestrator import VisionSolverEngine
 
-provider = LocalYoloProvider(
-    model_path="./models/yolov8_best.pt"
-)
+# 1. Initialize vision model provider
+provider = LocalYoloProvider(model_path="./models/yolov8_best.pt")
 
-engine = VisionSolverEngine(provider)
+# 2. Bind pipeline inside the orchestrator
+engine = VisionSolverEngine(pipeline=provider)
+
+# 3. Analyze layout image and solve
 result = engine.analyze_frame("board_layout.jpg")
-print(result.arrangement)
+print("Detected Tiles:", result.tiles)
+print("Optimal Score:", result.arrangement.totalScore)
 ```
 
 ---
 
-## FastAPI Microservice (API Server)
+## 🌐 FastAPI Microservice (API Server)
 
-For developers deploying this package to cloud environments, `okey-solver-py` ships with an embedded FastAPI microservice.
+Deploy this package directly to cloud infrastructure to process requests via HTTP:
 
-### 1. Install dependencies
+### Start the Microservice
 ```bash
-pip install okey-solver-py[server]
-```
+# Set environment variables for YOLO or Roboflow
+export YOLO_MODEL_PATH="./models/yolov8_best.pt"
 
-### 2. Start the Server
-```bash
-# Start on port 8000
+# Start the uvicorn instance on port 8000
 okey-serve --port 8000
 ```
 
-### 3. Interactive API Docs (Swagger UI)
-Once running, navigate to [http://localhost:8000/docs](http://localhost:8000/docs) in your browser. This interactive interface allows you to view detailed API schemas and test endpoints (such as `POST /solver/arrange` and `POST /vision/solve`) directly.
+### Endpoints
+- **`POST /solver/arrange`**: Accepts a JSON list of tile parameters and returns arranged melds.
+- **`POST /vision/solve`**: Accepts an uploaded board image, detects the layout, and returns solved arrangements.
+- **Interactive Swagger Docs**: Visit [http://localhost:8000/docs](http://localhost:8000/docs) to test requests in the browser.
 
 ---
 
-## Extended Documentation
+## 📖 Extended Documentation
 
-For details on architecture, rules, and APIs:
-- 🏗 **[Architecture & Flow](docs/ARCHITECTURE.md)** - Details on pipeline stages, frame adapters, and observers.
-- 📜 **[Game Rules Reference](docs/ALGORITHM_RULES.md)** - Okey rules, 12-13-1 circular runs, joker and false okey logic.
-- 💻 **[CLI Usage Guide](docs/CLI_USAGE.md)** - Guide to running `okey-solve` and `okey-vision` terminal applications.
-- 🤖 **[Telegram Bot Demo](demo/telegram/bot.py)** - Telegram Bot server example integrating image detection and layout solving.
+- 🏗 **[Architecture & Flow Reference](docs/ARCHITECTURE.md)** - Visual flow pipelines, observers, and providers.
+- 📜 **[Game Rules Reference](docs/ALGORITHM_RULES.md)** - Explanations of run configurations, circular sequences, and Joker/False Okey rules.
+- 💻 **[CLI Usage Guide](docs/CLI_USAGE.md)** - Terminal parameters for running predictions and solvers.
+- 🤝 **[Contributing Guide](CONTRIBUTING.md)** - Guidelines for configuring local poetry environments and running Ruff/Mypy checks.
