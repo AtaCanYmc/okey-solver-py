@@ -8,25 +8,21 @@ The python codebase is structured into two main submodules:
 
 ```mermaid
 graph TD
-    Input[Camera/File Image] --> Adapters[Frame Adapters]
-    Adapters --> Pipeline[Vision Pipeline]
+    Client[Client / CLI] -->|HTTP / Frame| Server[okey_server: FastAPI app]
+    Server -->|Content| Orchestrator[okey_orchestrator: VisionSolverEngine]
     
-    subgraph okey_vision
-        Pipeline --> Pre[Preprocess Stage]
-        Pre --> Det[Detect Stage]
-        Det --> Cls[Classify Stage]
+    subgraph Decoupled Layers
+        Orchestrator -->|Image Frame| Vision[okey_vision: YOLO/Roboflow]
+        Vision -->|Label Parsing Strategy| Parser[FuzzyLabelParser / CustomParser]
+        Vision -->|Parsed Tiles| Core[okey_core: Shared Types]
+        Orchestrator -->|Resolved Tiles| Solver[okey_solver: SolverEngine]
+        Solver -->|DTO Mapping| DTO[dto: LightTile/LightMeld]
+        DTO -->|Search Strategies| Strategy[Backtracking / Greedy Strategy]
     end
     
-    Cls --> Tiles[Parsed Tile Objects]
-    Tiles --> Solver[Solver Engine]
-    
-    subgraph okey_solver
-        Solver --> Backtrack[Backtracking Solver]
-        Solver --> Pairs[Pair Finder]
-    end
-    
-    Backtrack --> Output[Game Solution/Score]
-    Pairs --> Output
+    Strategy -->|Meld Solution| Orchestrator
+    Orchestrator -->|OrchestratorResult| Server
+    Server -->|JSON Response| Client
 ```
 
 ## Model Providers

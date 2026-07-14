@@ -53,13 +53,14 @@ provider = RoboflowWorkflowProvider(
 
 engine = VisionSolverEngine(provider)
 result = engine.analyze_frame("image_path.jpg")
-print(result["tiles"])
-print(result["arrangement"])
+print(result.tiles)
+print(result.arrangement)
 ```
 
 ### With Roboflow Object Detection Provider
 ```python
-from okey_vision import RoboflowProvider, VisionSolverEngine
+from okey_vision import RoboflowProvider
+from okey_orchestrator import VisionSolverEngine
 
 provider = RoboflowProvider(
     api_key="your_api_key",
@@ -69,13 +70,14 @@ provider = RoboflowProvider(
 
 engine = VisionSolverEngine(provider)
 result = engine.analyze_frame("image_path.jpg")
-print(result["tiles"])
-print(result["arrangement"])
+print(result.tiles)
+print(result.arrangement)
 ```
 
 ### With Local YOLO Model
 ```python
-from okey_vision import LocalYoloProvider, VisionSolverEngine
+from okey_vision import LocalYoloProvider
+from okey_orchestrator import VisionSolverEngine
 
 provider = LocalYoloProvider(
     model_path="./models/yolov8_best.pt"
@@ -83,8 +85,28 @@ provider = LocalYoloProvider(
 
 engine = VisionSolverEngine(provider)
 result = engine.analyze_frame("board_layout.jpg")
-print(result["arrangement"])
+print(result.arrangement)
 ```
+
+---
+
+## FastAPI Microservice (API Server)
+
+For developers deploying this package to cloud environments, `okey-solver-py` ships with an embedded FastAPI microservice.
+
+### 1. Install dependencies
+```bash
+pip install okey-solver-py[server]
+```
+
+### 2. Start the Server
+```bash
+# Start on port 8000
+okey-serve --port 8000
+```
+
+### 3. Interactive API Docs (Swagger UI)
+Once running, navigate to [http://localhost:8000/docs](http://localhost:8000/docs) in your browser. This interactive interface allows you to view detailed API schemas and test endpoints (such as `POST /solver/arrange` and `POST /vision/solve`) directly.
 
 ---
 
