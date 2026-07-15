@@ -1,7 +1,4 @@
 # okey_vision/__init__.py
-import logging
-
-logging.getLogger("okey_vision").addHandler(logging.NullHandler())
 from okey_vision.types import BoundingBox, Detection, FrameInput, BinaryFrame
 from okey_vision.frame_adapter import (
     FrameAdapter,
@@ -58,3 +55,6 @@ __all__ = [
     "VisionPipelineError",
     "ProviderError",
 ]
+
+import logging
+logging.getLogger("okey_vision").addHandler(logging.NullHandler())

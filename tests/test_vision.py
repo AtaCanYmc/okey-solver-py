@@ -5,7 +5,6 @@ from okey_vision import (
     Detection,
     BoundingBox,
     parse_default_tile,
-    OkeyVisionError,
     ProviderError,
 )
 from okey_orchestrator import VisionSolverEngine
