@@ -19,18 +19,18 @@ class RoboflowProvider:
             self,
             api_key: str,
             model_id: str = "rummikub-p8akb-vr0ef-2-yolov8n-t1",
+            workspace_name="ata-dc7ry",
             model_version: Union[int, str] = 1,
             label_map: Optional[Dict[str, TileColor]] = None,
             parser: Optional[LabelParserStrategy] = None,
-            api_url: Optional[str] = None,
-            workspace_name: Optional[str] = None,
+            api_url: Optional[str] = None
     ):
         self.api_key = api_key
         # Split workspace name if embedded in model_id (e.g. "workspace/project")
         if "/" in model_id:
             parts = model_id.split("/")
             if len(parts) == 2:
-                self.workspace = workspace_name or parts[0]
+                self.workspace = parts[0]
                 self.project = parts[1]
             else:
                 self.workspace = workspace_name
@@ -43,7 +43,7 @@ class RoboflowProvider:
         self.color_aliases = {**DEFAULT_COLOR_ALIASES, **(label_map or {})}
         self.api_url = api_url or os.getenv("ROBOFLOW_API_URL", "https://serverless.roboflow.com")
         self.parser = parser or FuzzyLabelParser()
-        
+
         # Connect using the InferenceHTTPClient
         self.client = InferenceHTTPClient(
             api_url=self.api_url,
@@ -66,7 +66,7 @@ class RoboflowProvider:
 
     def detect(self, frame: FrameInput) -> List[Detection]:
         image = self._prepare_image(frame)
-        
+
         # Build model ID as {workspace}/{project}/{version} or {project}/{version}
         model_endpoint = f"{self.project}/{self.model_version}"
         if self.workspace:
