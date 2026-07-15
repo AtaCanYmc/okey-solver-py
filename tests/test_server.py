@@ -76,3 +76,12 @@ def test_solve_vision_endpoint():
         app.dependency_overrides.clear()
 
 
+def test_solve_vision_with_request_params():
+    import io
+    file_data = {"file": ("test.jpg", io.BytesIO(b"dummydata"), "image/jpeg")}
+    form_data = {"model_path": "non_existent_file.pt"}
+    response = client.post("/vision/solve", files=file_data, data=form_data)
+    assert response.status_code == 400
+    assert "Failed to initialize request-scoped" in response.json()["detail"]
+
+
