@@ -14,12 +14,12 @@ class RoboflowProvider:
     """
 
     def __init__(
-        self,
-        api_key: str,
-        model_id: str = "rummikub-5bldr",
-        model_version: Union[int, str] = 1,
-        label_map: Optional[Dict[str, TileColor]] = None,
-        parser: Optional[LabelParserStrategy] = None,
+            self,
+            api_key: str,
+            model_id: str = "rummikub-p8akb-vr0ef-2-yolov8n-t1",
+            model_version: Union[int, str] = 1,
+            label_map: Optional[Dict[str, TileColor]] = None,
+            parser: Optional[LabelParserStrategy] = None,
     ):
         self.api_key = api_key
         self.model_id = model_id

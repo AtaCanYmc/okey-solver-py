@@ -25,8 +25,8 @@ class ArrangeRequest(BaseModel):
 
 @router.post("/solver/arrange", response_model=Arrangement)
 def arrange_hand(
-    req: ArrangeRequest,
-    solver: SolverEngine = Depends(get_solver_engine),
+        req: ArrangeRequest,
+        solver: SolverEngine = Depends(get_solver_engine),
 ):
     """
     Solves and arranges a given list of Okey tiles into optimal melds.
@@ -43,11 +43,11 @@ def arrange_hand(
 
 @router.post("/vision/solve/local", response_model=OrchestratorResult)
 async def solve_vision_local(
-    file: UploadFile = File(...),
-    okey_meta_color: Optional[TileColor] = Form(None),
-    okey_meta_value: Optional[int] = Form(None),
-    model_path: Optional[str] = Form(None),
-    pipeline: Optional[Any] = Depends(get_vision_pipeline),
+        file: UploadFile = File(...),
+        okey_meta_color: Optional[TileColor] = Form(None),
+        okey_meta_value: Optional[int] = Form(None),
+        model_path: Optional[str] = Form(None),
+        pipeline: Optional[Any] = Depends(get_vision_pipeline),
 ):
     """
     Processes an uploaded board image using a local YOLO model and solves the optimal arrangement.
@@ -75,7 +75,7 @@ async def solve_vision_local(
     try:
         content = await file.read()
         from okey_orchestrator import VisionSolverEngine
-        
+
         okey_meta = None
         if okey_meta_color and okey_meta_value is not None:
             okey_meta = OkeyMeta(color=okey_meta_color, value=okey_meta_value)
@@ -89,14 +89,13 @@ async def solve_vision_local(
 
 @router.post("/vision/solve/roboflow", response_model=OrchestratorResult)
 async def solve_vision_roboflow(
-    file: UploadFile = File(...),
-    okey_meta_color: Optional[TileColor] = Form(None),
-    okey_meta_value: Optional[int] = Form(None),
-    api_key: Optional[str] = Form(None),
-    workspace: Optional[str] = Form(None),
-    model_id: Optional[str] = Form(None),
-    model_version: Optional[int] = Form(1),
-    pipeline: Optional[Any] = Depends(get_vision_pipeline),
+        file: UploadFile = File(...),
+        okey_meta_color: Optional[TileColor] = Form(None),
+        okey_meta_value: Optional[int] = Form(None),
+        api_key: Optional[str] = Form(None),
+        model_id: Optional[str] = Form(None),
+        model_version: Optional[int] = Form(1),
+        pipeline: Optional[Any] = Depends(get_vision_pipeline),
 ):
     """
     Processes an uploaded board image using standard Roboflow object detection and solves the optimal arrangement.
@@ -106,13 +105,11 @@ async def solve_vision_roboflow(
     active_pipeline = None
 
     if api_key:
-        ws = workspace or "ata-dc7ry"
-        m_id = model_id or "okey-rummikub"
+        m_id = model_id or "rummikub-p8akb-vr0ef-2-yolov8n-t1"
         v_num = model_version if model_version is not None else 1
         try:
             active_pipeline = RoboflowProvider(
                 api_key=api_key,
-                workspace_name=ws,
                 model_id=m_id,
                 model_version=v_num
             )
@@ -127,13 +124,16 @@ async def solve_vision_roboflow(
     if active_pipeline is None:
         raise HTTPException(
             status_code=400,
-            detail="Roboflow standard provider not configured. Please supply api_key in the request or set ROBOFLOW_API_KEY."
+            detail=(
+                "Roboflow standard provider not configured. "
+                "Please supply api_key in the request or set ROBOFLOW_API_KEY."
+            )
         )
 
     try:
         content = await file.read()
         from okey_orchestrator import VisionSolverEngine
-        
+
         okey_meta = None
         if okey_meta_color and okey_meta_value is not None:
             okey_meta = OkeyMeta(color=okey_meta_color, value=okey_meta_value)
@@ -147,13 +147,13 @@ async def solve_vision_roboflow(
 
 @router.post("/vision/solve/roboflow/workflow", response_model=OrchestratorResult)
 async def solve_vision_roboflow_workflow(
-    file: UploadFile = File(...),
-    okey_meta_color: Optional[TileColor] = Form(None),
-    okey_meta_value: Optional[int] = Form(None),
-    api_key: Optional[str] = Form(None),
-    workspace: Optional[str] = Form(None),
-    workflow_id: Optional[str] = Form(None),
-    pipeline: Optional[Any] = Depends(get_vision_pipeline),
+        file: UploadFile = File(...),
+        okey_meta_color: Optional[TileColor] = Form(None),
+        okey_meta_value: Optional[int] = Form(None),
+        api_key: Optional[str] = Form(None),
+        workspace: Optional[str] = Form(None),
+        workflow_id: Optional[str] = Form(None),
+        pipeline: Optional[Any] = Depends(get_vision_pipeline),
 ):
     """
     Processes an uploaded board image using custom Roboflow workflows and solves the optimal arrangement.
@@ -188,7 +188,7 @@ async def solve_vision_roboflow_workflow(
     try:
         content = await file.read()
         from okey_orchestrator import VisionSolverEngine
-        
+
         okey_meta = None
         if okey_meta_color and okey_meta_value is not None:
             okey_meta = OkeyMeta(color=okey_meta_color, value=okey_meta_value)
@@ -206,9 +206,9 @@ async def solve_vision_roboflow_workflow(
 
 @router.post("/vision/extract/local", response_model=List[Tile])
 async def extract_vision_local(
-    file: UploadFile = File(...),
-    model_path: Optional[str] = Form(None),
-    pipeline: Optional[Any] = Depends(get_vision_pipeline),
+        file: UploadFile = File(...),
+        model_path: Optional[str] = Form(None),
+        pipeline: Optional[Any] = Depends(get_vision_pipeline),
 ):
     """
     Detects and extracts the list of Okey tiles from an uploaded image using local YOLO weights.
@@ -230,7 +230,10 @@ async def extract_vision_local(
     if active_pipeline is None:
         raise HTTPException(
             status_code=400,
-            detail="Local YOLO vision provider not configured. Please supply model_path in the request or set YOLO_MODEL_PATH."
+            detail=(
+                "Local YOLO vision provider not configured. "
+                "Please supply model_path in the request or set YOLO_MODEL_PATH."
+            )
         )
 
     try:
@@ -245,12 +248,11 @@ async def extract_vision_local(
 
 @router.post("/vision/extract/roboflow", response_model=List[Tile])
 async def extract_vision_roboflow(
-    file: UploadFile = File(...),
-    api_key: Optional[str] = Form(None),
-    workspace: Optional[str] = Form(None),
-    model_id: Optional[str] = Form(None),
-    model_version: Optional[int] = Form(1),
-    pipeline: Optional[Any] = Depends(get_vision_pipeline),
+        file: UploadFile = File(...),
+        api_key: Optional[str] = Form(None),
+        model_id: Optional[str] = Form(None),
+        model_version: Optional[int] = Form(1),
+        pipeline: Optional[Any] = Depends(get_vision_pipeline),
 ):
     """
     Detects and extracts the list of Okey tiles from an uploaded image using standard Roboflow models.
@@ -260,13 +262,11 @@ async def extract_vision_roboflow(
     active_pipeline = None
 
     if api_key:
-        ws = workspace or "ata-dc7ry"
-        m_id = model_id or "okey-rummikub"
+        m_id = model_id or "rummikub-p8akb-vr0ef-2-yolov8n-t1"
         v_num = model_version if model_version is not None else 1
         try:
             active_pipeline = RoboflowProvider(
                 api_key=api_key,
-                workspace_name=ws,
                 model_id=m_id,
                 model_version=v_num
             )
@@ -281,7 +281,10 @@ async def extract_vision_roboflow(
     if active_pipeline is None:
         raise HTTPException(
             status_code=400,
-            detail="Roboflow standard provider not configured. Please supply api_key in the request or set ROBOFLOW_API_KEY."
+            detail=(
+                "Roboflow standard provider not configured. "
+                "Please supply api_key in the request or set ROBOFLOW_API_KEY."
+            )
         )
 
     try:
@@ -296,11 +299,11 @@ async def extract_vision_roboflow(
 
 @router.post("/vision/extract/roboflow/workflow", response_model=List[Tile])
 async def extract_vision_roboflow_workflow(
-    file: UploadFile = File(...),
-    api_key: Optional[str] = Form(None),
-    workspace: Optional[str] = Form(None),
-    workflow_id: Optional[str] = Form(None),
-    pipeline: Optional[Any] = Depends(get_vision_pipeline),
+        file: UploadFile = File(...),
+        api_key: Optional[str] = Form(None),
+        workspace: Optional[str] = Form(None),
+        workflow_id: Optional[str] = Form(None),
+        pipeline: Optional[Any] = Depends(get_vision_pipeline),
 ):
     """
     Detects and extracts the list of Okey tiles from an uploaded image using custom Roboflow workflows.
@@ -329,7 +332,10 @@ async def extract_vision_roboflow_workflow(
     if active_pipeline is None:
         raise HTTPException(
             status_code=400,
-            detail="Roboflow workflow provider not configured. Please supply api_key in the request or set ROBOFLOW_API_KEY."
+            detail=(
+                "Roboflow workflow provider not configured. "
+                "Please supply api_key in the request or set ROBOFLOW_API_KEY."
+            )
         )
 
     try:
