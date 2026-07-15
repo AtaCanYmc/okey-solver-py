@@ -18,7 +18,7 @@ class RoboflowProvider:
     def __init__(
             self,
             api_key: str,
-            model_id: str = "rummikub-p8akb-vr0ef-2-yolov8n-t1",
+            model_id: str = "rummikub-p8akb-vr0ef-3-yolov8n-t1",
             workspace_name="ata-dc7ry",
             model_version: Union[int, str] = 1,
             label_map: Optional[Dict[str, TileColor]] = None,
