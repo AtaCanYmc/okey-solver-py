@@ -6,6 +6,12 @@ from okey_server.app import app
 client = TestClient(app)
 
 
+def test_health_check_endpoint():
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok", "version": "0.3.0"}
+
+
 def test_arrange_hand_endpoint():
     payload = {
         "tiles": [
@@ -14,7 +20,7 @@ def test_arrange_hand_endpoint():
             {"id": "r7", "color": "RED", "value": 7}
         ]
     }
-    response = client.post("/solver/arrange", json=payload)
+    response = client.post("/api/v1/solver/arrange", json=payload)
     assert response.status_code == 200
     data = response.json()
     assert len(data["melds"]) == 1
@@ -27,12 +33,12 @@ def test_dependency_override_mock():
             from okey_core.types import Arrangement
             return Arrangement(melds=[], remainingTiles=tiles, totalScore=999)
 
-    from okey_server.app import get_solver_engine
+    from okey_server.routers import get_solver_engine
     
     app.dependency_overrides[get_solver_engine] = lambda: MockSolver()
     try:
         payload = {"tiles": []}
-        response = client.post("/solver/arrange", json=payload)
+        response = client.post("/api/v1/solver/arrange", json=payload)
         assert response.status_code == 200
         data = response.json()
         assert data["totalScore"] == 999
@@ -61,12 +67,12 @@ def test_solve_vision_endpoint():
         async def classify_async(self, frame, detections):
             return [Tile(id="red-5", color=TileColor.RED, value=5)]
 
-    from okey_server.app import get_vision_pipeline
+    from okey_server.routers import get_vision_pipeline
     app.dependency_overrides[get_vision_pipeline] = lambda: MockPipeline()
     try:
         import io
         file_data = {"file": ("test.jpg", io.BytesIO(b"dummydata"), "image/jpeg")}
-        response = client.post("/vision/solve", files=file_data)
+        response = client.post("/api/v1/vision/solve", files=file_data)
         assert response.status_code == 200
         data = response.json()
         assert len(data["tiles"]) == 1
@@ -80,8 +86,6 @@ def test_solve_vision_with_request_params():
     import io
     file_data = {"file": ("test.jpg", io.BytesIO(b"dummydata"), "image/jpeg")}
     form_data = {"model_path": "non_existent_file.pt"}
-    response = client.post("/vision/solve", files=file_data, data=form_data)
+    response = client.post("/api/v1/vision/solve", files=file_data, data=form_data)
     assert response.status_code == 400
     assert "Failed to initialize request-scoped" in response.json()["detail"]
-
-
