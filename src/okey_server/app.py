@@ -39,8 +39,7 @@ async def lifespan(app: FastAPI):
             state.vision_pipeline = RoboflowProvider(
                 api_key=key,
                 model_id=model_id,
-                model_version=model_version,
-                workspace_name=workspace
+                model_version=model_version
             )
             print(
                 f"Loaded default RoboflowProvider (Workspace: {workspace}, Model: {model_id}, Version: {model_version})")
