@@ -66,11 +66,9 @@ class RoboflowProvider:
 
     def detect(self, frame: FrameInput) -> List[Detection]:
         image = self._prepare_image(frame)
-
-        # Build model ID as {workspace}/{project}/{version} or {project}/{version}
+        
+        # Build model ID as {project}/{version} to satisfy Inference SDK validation format
         model_endpoint = f"{self.project}/{self.model_version}"
-        if self.workspace:
-            model_endpoint = f"{self.workspace}/{model_endpoint}"
 
         try:
             res_data = self.client.infer(image, model_id=model_endpoint)
