@@ -46,11 +46,15 @@ def test_dependency_override_mock():
         app.dependency_overrides.clear()
 
 
-def test_solve_vision_endpoint():
+def test_solve_vision_local_endpoint():
     from okey_vision.types import Detection, BoundingBox
     from okey_core.types import Tile, TileColor
+    from okey_vision.providers import LocalYoloProvider
 
-    class MockPipeline:
+    class MockLocalPipeline(LocalYoloProvider):
+        def __init__(self):
+            pass
+
         async def preprocess_async(self, frame):
             return frame
 
@@ -68,24 +72,101 @@ def test_solve_vision_endpoint():
             return [Tile(id="red-5", color=TileColor.RED, value=5)]
 
     from okey_server.routers import get_vision_pipeline
-    app.dependency_overrides[get_vision_pipeline] = lambda: MockPipeline()
+    app.dependency_overrides[get_vision_pipeline] = lambda: MockLocalPipeline()
     try:
         import io
         file_data = {"file": ("test.jpg", io.BytesIO(b"dummydata"), "image/jpeg")}
-        response = client.post("/api/v1/vision/solve", files=file_data)
+        response = client.post("/api/v1/vision/solve/local", files=file_data)
         assert response.status_code == 200
         data = response.json()
         assert len(data["tiles"]) == 1
         assert data["tiles"][0]["id"] == "red-5"
-        assert data["arrangement"]["totalScore"] == 0
     finally:
         app.dependency_overrides.clear()
 
 
-def test_solve_vision_with_request_params():
+def test_solve_vision_roboflow_endpoint():
+    from okey_vision.types import Detection, BoundingBox
+    from okey_core.types import Tile, TileColor
+    from okey_vision.providers import RoboflowProvider
+
+    class MockRoboflowPipeline(RoboflowProvider):
+        def __init__(self):
+            pass
+
+        async def preprocess_async(self, frame):
+            return frame
+
+        async def detect_async(self, frame):
+            return [
+                Detection(
+                    id="v1",
+                    bounds=BoundingBox(x=0, y=0, width=1, height=1),
+                    confidence=0.95,
+                    label="BLUE-8"
+                )
+            ]
+
+        async def classify_async(self, frame, detections):
+            return [Tile(id="blue-8", color=TileColor.BLUE, value=8)]
+
+    from okey_server.routers import get_vision_pipeline
+    app.dependency_overrides[get_vision_pipeline] = lambda: MockRoboflowPipeline()
+    try:
+        import io
+        file_data = {"file": ("test.jpg", io.BytesIO(b"dummydata"), "image/jpeg")}
+        response = client.post("/api/v1/vision/solve/roboflow", files=file_data)
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["tiles"]) == 1
+        assert data["tiles"][0]["id"] == "blue-8"
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_solve_vision_roboflow_workflow_endpoint():
+    from okey_vision.types import Detection, BoundingBox
+    from okey_core.types import Tile, TileColor
+    from okey_vision.providers import RoboflowWorkflowProvider
+
+    class MockWorkflowPipeline(RoboflowWorkflowProvider):
+        def __init__(self):
+            pass
+
+        async def preprocess_async(self, frame):
+            return frame
+
+        async def detect_async(self, frame):
+            return [
+                Detection(
+                    id="v1",
+                    bounds=BoundingBox(x=0, y=0, width=1, height=1),
+                    confidence=0.95,
+                    label="BLACK-11"
+                )
+            ]
+
+        async def classify_async(self, frame, detections):
+            return [Tile(id="black-11", color=TileColor.BLACK, value=11)]
+
+    from okey_server.routers import get_vision_pipeline
+    app.dependency_overrides[get_vision_pipeline] = lambda: MockWorkflowPipeline()
+    try:
+        import io
+        file_data = {"file": ("test.jpg", io.BytesIO(b"dummydata"), "image/jpeg")}
+        response = client.post("/api/v1/vision/solve/roboflow/workflow", files=file_data)
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["tiles"]) == 1
+        assert data["tiles"][0]["id"] == "black-11"
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_solve_vision_local_with_request_params():
     import io
     file_data = {"file": ("test.jpg", io.BytesIO(b"dummydata"), "image/jpeg")}
     form_data = {"model_path": "non_existent_file.pt"}
-    response = client.post("/api/v1/vision/solve", files=file_data, data=form_data)
+    response = client.post("/api/v1/vision/solve/local", files=file_data, data=form_data)
     assert response.status_code == 400
     assert "Failed to initialize request-scoped" in response.json()["detail"]

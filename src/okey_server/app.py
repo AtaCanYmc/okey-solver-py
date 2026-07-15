@@ -1,25 +1,17 @@
 # okey_server/app.py
 import os
 from contextlib import asynccontextmanager
+
+import uvicorn
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from okey_server import state
 from okey_server.routers import router
 
 
-def load_env_file():
-    env_path = os.path.join(os.getcwd(), ".env")
-    if os.path.exists(env_path):
-        with open(env_path, "r") as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith("#") and "=" in line:
-                    key, val = line.split("=", 1)
-                    os.environ.setdefault(key.strip(), val.strip().strip('"').strip("'"))
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    load_env_file()
+    load_dotenv()
 
     model_path = os.getenv("YOLO_MODEL_PATH")
     rf_key = os.getenv("ROBOFLOW_API_KEY")
@@ -32,21 +24,28 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             print(f"Warning: Failed to load local YOLO provider: {e}")
     else:
-        # Default fallback to Roboflow if no local model path is specified
-        from okey_vision.providers import RoboflowWorkflowProvider
+        # Default fallback to Roboflow standard model if no local model path is specified
+        from okey_vision.providers import RoboflowProvider
         key = rf_key or "ROBOFLOW_API_KEY"
         workspace = os.getenv("ROBOFLOW_WORKSPACE", "ata-dc7ry")
-        workflow = os.getenv("ROBOFLOW_WORKFLOW_ID", "rummikub-vrummikub-p8akb-vr0ef-3-yolov8n-t1-logic")
-        
+        model_id = os.getenv("ROBOFLOW_MODEL_ID", "okey-rummikub")
+        version_str = os.getenv("ROBOFLOW_MODEL_VERSION", "1")
         try:
-            state.vision_pipeline = RoboflowWorkflowProvider(
+            model_version = int(version_str)
+        except ValueError:
+            model_version = 1
+
+        try:
+            state.vision_pipeline = RoboflowProvider(
                 api_key=key,
-                workspace_name=workspace,
-                workflow_id=workflow
+                model_id=model_id,
+                model_version=model_version,
+                workspace_name=workspace
             )
-            print(f"Loaded default RoboflowWorkflowProvider (Workspace: {workspace}, Workflow: {workflow})")
+            print(
+                f"Loaded default RoboflowProvider (Workspace: {workspace}, Model: {model_id}, Version: {model_version})")
         except Exception as e:
-            print(f"Warning: Failed to load default Roboflow workflow provider: {e}")
+            print(f"Warning: Failed to load default Roboflow provider: {e}")
     yield
 
 
@@ -68,3 +67,7 @@ def health_check():
 
 # Register endpoints with /api/v1 prefix
 app.include_router(router, prefix="/api/v1")
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="127.0.0.1", port=8000)

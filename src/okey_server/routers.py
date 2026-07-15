@@ -37,26 +37,22 @@ def arrange_hand(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/vision/solve", response_model=OrchestratorResult)
-async def solve_vision(
+@router.post("/vision/solve/local", response_model=OrchestratorResult)
+async def solve_vision_local(
     file: UploadFile = File(...),
     okey_meta_color: Optional[TileColor] = Form(None),
     okey_meta_value: Optional[int] = Form(None),
-    # Vision request variables
-    api_key: Optional[str] = Form(None),
-    workspace: Optional[str] = Form(None),
-    workflow_id: Optional[str] = Form(None),
     model_path: Optional[str] = Form(None),
     pipeline: Optional[Any] = Depends(get_vision_pipeline),
 ):
     """
-    Processes an uploaded board image, detects the tiles, and returns the optimal meld arrangement.
-    Variables (api_key, workspace, workflow_id, or model_path) can be supplied directly in the form request.
+    Processes an uploaded board image using a local YOLO model.
+    Accepts an optional request-scoped `model_path` override.
     """
-    active_pipeline = pipeline
+    from okey_vision.providers import LocalYoloProvider
 
+    active_pipeline = None
     if model_path:
-        from okey_vision.providers import LocalYoloProvider
         try:
             active_pipeline = LocalYoloProvider(model_path=model_path)
         except Exception as e:
@@ -64,26 +60,126 @@ async def solve_vision(
                 status_code=400,
                 detail=f"Failed to initialize request-scoped LocalYoloProvider: {e}"
             )
-    elif api_key:
-        from okey_vision.providers import RoboflowWorkflowProvider
+    elif isinstance(pipeline, LocalYoloProvider):
+        active_pipeline = pipeline
+
+    if active_pipeline is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Local YOLO vision provider not configured. Please supply model_path in the request or set YOLO_MODEL_PATH."
+        )
+
+    try:
+        content = await file.read()
+        from okey_orchestrator import VisionSolverEngine
+        
+        okey_meta = None
+        if okey_meta_color and okey_meta_value is not None:
+            okey_meta = OkeyMeta(color=okey_meta_color, value=okey_meta_value)
+
+        engine = VisionSolverEngine(pipeline=active_pipeline, okey_meta=okey_meta)
+        result = await engine.analyze_frame_async(content)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/vision/solve/roboflow", response_model=OrchestratorResult)
+async def solve_vision_roboflow(
+    file: UploadFile = File(...),
+    okey_meta_color: Optional[TileColor] = Form(None),
+    okey_meta_value: Optional[int] = Form(None),
+    api_key: Optional[str] = Form(None),
+    workspace: Optional[str] = Form(None),
+    model_id: Optional[str] = Form(None),
+    model_version: Optional[int] = Form(1),
+    pipeline: Optional[Any] = Depends(get_vision_pipeline),
+):
+    """
+    Processes an uploaded board image using standard Roboflow object detection models.
+    """
+    from okey_vision.providers import RoboflowProvider
+
+    active_pipeline = None
+
+    if api_key:
         ws = workspace or "ata-dc7ry"
-        wf = workflow_id or "rummikub-vrummikub-p8akb-vr0ef-3-yolov8n-t1-logic"
+        m_id = model_id or "okey-rummikub"
+        v_num = model_version if model_version is not None else 1
+        try:
+            active_pipeline = RoboflowProvider(
+                api_key=api_key,
+                workspace_name=ws,
+                model_id=m_id,
+                model_version=v_num
+            )
+        except Exception as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Failed to initialize request-scoped RoboflowProvider: {e}"
+            )
+    elif isinstance(pipeline, RoboflowProvider):
+        active_pipeline = pipeline
+
+    if active_pipeline is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Roboflow standard provider not configured. Please supply api_key in the request or set ROBOFLOW_API_KEY."
+        )
+
+    try:
+        content = await file.read()
+        from okey_orchestrator import VisionSolverEngine
+        
+        okey_meta = None
+        if okey_meta_color and okey_meta_value is not None:
+            okey_meta = OkeyMeta(color=okey_meta_color, value=okey_meta_value)
+
+        engine = VisionSolverEngine(pipeline=active_pipeline, okey_meta=okey_meta)
+        result = await engine.analyze_frame_async(content)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/vision/solve/roboflow/workflow", response_model=OrchestratorResult)
+async def solve_vision_roboflow_workflow(
+    file: UploadFile = File(...),
+    okey_meta_color: Optional[TileColor] = Form(None),
+    okey_meta_value: Optional[int] = Form(None),
+    api_key: Optional[str] = Form(None),
+    workspace: Optional[str] = Form(None),
+    workflow_id: Optional[str] = Form(None),
+    pipeline: Optional[Any] = Depends(get_vision_pipeline),
+):
+    """
+    Processes an uploaded board image using custom Roboflow workflows.
+    """
+    from okey_vision.providers import RoboflowWorkflowProvider
+
+    active_pipeline = None
+
+    if api_key:
+        ws = workspace or "ata-dc7ry"
+        wf_id = workflow_id or "rummikub-vrummikub-p8akb-vr0ef-3-yolov8n-t1-logic"
         try:
             active_pipeline = RoboflowWorkflowProvider(
                 api_key=api_key,
                 workspace_name=ws,
-                workflow_id=wf
+                workflow_id=wf_id
             )
         except Exception as e:
             raise HTTPException(
                 status_code=400,
                 detail=f"Failed to initialize request-scoped RoboflowWorkflowProvider: {e}"
             )
+    elif isinstance(pipeline, RoboflowWorkflowProvider):
+        active_pipeline = pipeline
 
     if active_pipeline is None:
         raise HTTPException(
             status_code=400,
-            detail="Vision provider not configured. Please supply api_key or model_path in the request or environment variables."
+            detail="Roboflow workflow provider not configured. Please supply api_key in the request or set ROBOFLOW_API_KEY."
         )
 
     try:
