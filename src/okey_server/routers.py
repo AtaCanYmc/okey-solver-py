@@ -25,8 +25,8 @@ class ArrangeRequest(BaseModel):
 
 @router.post("/solver/arrange", response_model=Arrangement)
 def arrange_hand(
-    req: ArrangeRequest,
-    solver: SolverEngine = Depends(get_solver_engine),
+        req: ArrangeRequest,
+        solver: SolverEngine = Depends(get_solver_engine),
 ):
     """
     Solves and arranges a given list of Okey tiles into optimal melds.
@@ -39,11 +39,11 @@ def arrange_hand(
 
 @router.post("/vision/solve/local", response_model=OrchestratorResult)
 async def solve_vision_local(
-    file: UploadFile = File(...),
-    okey_meta_color: Optional[TileColor] = Form(None),
-    okey_meta_value: Optional[int] = Form(None),
-    model_path: Optional[str] = Form(None),
-    pipeline: Optional[Any] = Depends(get_vision_pipeline),
+        file: UploadFile = File(...),
+        okey_meta_color: Optional[TileColor] = Form(None),
+        okey_meta_value: Optional[int] = Form(None),
+        model_path: Optional[str] = Form(None),
+        pipeline: Optional[Any] = Depends(get_vision_pipeline),
 ):
     """
     Processes an uploaded board image using a local YOLO model.
@@ -72,7 +72,7 @@ async def solve_vision_local(
     try:
         content = await file.read()
         from okey_orchestrator import VisionSolverEngine
-        
+
         okey_meta = None
         if okey_meta_color and okey_meta_value is not None:
             okey_meta = OkeyMeta(color=okey_meta_color, value=okey_meta_value)
@@ -86,14 +86,14 @@ async def solve_vision_local(
 
 @router.post("/vision/solve/roboflow", response_model=OrchestratorResult)
 async def solve_vision_roboflow(
-    file: UploadFile = File(...),
-    okey_meta_color: Optional[TileColor] = Form(None),
-    okey_meta_value: Optional[int] = Form(None),
-    api_key: Optional[str] = Form(None),
-    workspace: Optional[str] = Form(None),
-    model_id: Optional[str] = Form(None),
-    model_version: Optional[int] = Form(1),
-    pipeline: Optional[Any] = Depends(get_vision_pipeline),
+        file: UploadFile = File(...),
+        okey_meta_color: Optional[TileColor] = Form(None),
+        okey_meta_value: Optional[int] = Form(None),
+        api_key: Optional[str] = Form(None),
+        workspace: Optional[str] = Form(None),
+        model_id: Optional[str] = Form(None),
+        model_version: Optional[int] = Form(1),
+        pipeline: Optional[Any] = Depends(get_vision_pipeline),
 ):
     """
     Processes an uploaded board image using standard Roboflow object detection models.
@@ -130,7 +130,7 @@ async def solve_vision_roboflow(
     try:
         content = await file.read()
         from okey_orchestrator import VisionSolverEngine
-        
+
         okey_meta = None
         if okey_meta_color and okey_meta_value is not None:
             okey_meta = OkeyMeta(color=okey_meta_color, value=okey_meta_value)
@@ -144,13 +144,13 @@ async def solve_vision_roboflow(
 
 @router.post("/vision/solve/roboflow/workflow", response_model=OrchestratorResult)
 async def solve_vision_roboflow_workflow(
-    file: UploadFile = File(...),
-    okey_meta_color: Optional[TileColor] = Form(None),
-    okey_meta_value: Optional[int] = Form(None),
-    api_key: Optional[str] = Form(None),
-    workspace: Optional[str] = Form(None),
-    workflow_id: Optional[str] = Form(None),
-    pipeline: Optional[Any] = Depends(get_vision_pipeline),
+        file: UploadFile = File(...),
+        okey_meta_color: Optional[TileColor] = Form(None),
+        okey_meta_value: Optional[int] = Form(None),
+        api_key: Optional[str] = Form(None),
+        workspace: Optional[str] = Form(None),
+        workflow_id: Optional[str] = Form(None),
+        pipeline: Optional[Any] = Depends(get_vision_pipeline),
 ):
     """
     Processes an uploaded board image using custom Roboflow workflows.
@@ -185,7 +185,7 @@ async def solve_vision_roboflow_workflow(
     try:
         content = await file.read()
         from okey_orchestrator import VisionSolverEngine
-        
+
         okey_meta = None
         if okey_meta_color and okey_meta_value is not None:
             okey_meta = OkeyMeta(color=okey_meta_color, value=okey_meta_value)
