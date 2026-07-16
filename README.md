@@ -26,13 +26,8 @@ The codebase is split into fully decoupled, high-performance packages under the 
    Completely independent.
 2. **`okey_solver`**: Stateless mathematical engines to calculate optimal run/group melds and identical pairs. Uses
    slot-based DTO mapping (`LightTile`, `LightMeld`) to bypass Pydantic model loop overhead.
-3. **`okey_vision`**: Translates frames (numpy, PIL, bytes, base64) into tile predictions. Supports local YOLO or cloud
-   Roboflow models (including the
-   pretrained [Okey-Rummikub Model on Roboflow Universe](https://universe.roboflow.com/ata-dc7ry/okey-rummikub) trained
-   on the [Okey-Data Kaggle Dataset](https://www.kaggle.com/datasets/atacanyaymac/okey-data)). Decoupled from solver
-   logic via an injectable `LabelParserStrategy`.
-4. **`okey_orchestrator`**: Orchestrates pipelines by feeding vision outputs into the mathematical solver. Supports
-   passing custom `SolverEngine` instances or a `strategy` string directly during setup.
+3. **`okey_vision`**: Translates frames (numpy, PIL, bytes, base64) into tile predictions. Queries the cloud Roboflow Workflow API (including the pretrained [Okey-Rummikub Model on Roboflow Universe](https://universe.roboflow.com/ata-dc7ry/okey-rummikub) trained on the [Okey-Data Kaggle Dataset](https://www.kaggle.com/datasets/atacanyaymac/okey-data)) to detect layouts. Decoupled from solver logic via an injectable `LabelParserStrategy`.
+4. **`okey_orchestrator`**: Orchestrates pipelines by feeding vision outputs into the mathematical solver. Supports passing custom `SolverEngine` instances or a `strategy` string directly during setup.
 5. **`okey_server`**: A microservice framework delivering endpoints for vision processing and hand arrangement.
 
 ---
@@ -70,7 +65,7 @@ pip install okey-solver-py[vision,server]
 The package exposes the following CLI commands:
 
 - **`okey-solve`**: Solves hand arrangements from lists of tile arguments.
-- **`okey-vision`**: Runs object detection predictions on an image layout.
+- **`okey-vision`**: Runs object detection predictions on an image layout using Roboflow workflows.
 - **`okey-serve`**: Launches the FastAPI REST microservice API.
 - **`okey-demo`**: Launches the local terminal solver demo application.
 
@@ -98,11 +93,11 @@ print(f"Total Score: {result.totalScore}")
 ### 2. End-to-End Orchestration (Vision + Solver with Strategy Selection)
 
 ```python
-from okey_vision import LocalYoloProvider
+from okey_vision import RoboflowWorkflowProvider
 from okey_orchestrator import VisionSolverEngine
 
 # 1. Initialize vision model provider
-provider = LocalYoloProvider(model_path="./models/yolov8_best.pt")
+provider = RoboflowWorkflowProvider(api_key="YOUR_ROBOFLOW_API_KEY")
 
 # 2. Bind pipeline inside the orchestrator with strategy selection
 # Supports strategy="backtracking", strategy="greedy", or passing a custom solver=instance
@@ -123,8 +118,8 @@ Deploy this package directly to cloud infrastructure to process requests via HTT
 ### Start the Microservice
 
 ```bash
-# Set environment variables for YOLO or Roboflow
-export YOLO_MODEL_PATH="./models/yolov8_best.pt"
+# Set environment variables for Roboflow Workflow
+export OKEY_RF_KEY="your_api_key"
 
 # Start the uvicorn instance on port 8000
 okey-serve --port 8000
@@ -133,7 +128,8 @@ okey-serve --port 8000
 ### Endpoints
 
 - **`POST /solver/arrange`**: Accepts a JSON list of tile parameters and returns arranged melds.
-- **`POST /vision/solve`**: Accepts an uploaded board image, detects the layout, and returns solved arrangements.
+- **`POST /vision/solve`**: Accepts an uploaded board image, detects the layout via Roboflow Workflows, and returns solved arrangements.
+- **`POST /vision/extract`**: Accepts an uploaded board image, detects and returns the list of Okey tiles.
 - **Interactive Swagger Docs**: Visit [http://localhost:8000/docs](http://localhost:8000/docs) to test requests in the
   browser.
 

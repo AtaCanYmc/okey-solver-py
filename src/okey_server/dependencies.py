@@ -48,85 +48,6 @@ async def validate_image_file(
     return bytes(content)
 
 
-def get_local_yolo_provider(
-    request: Request,
-    model_path: Optional[str] = Form(None),
-) -> Any:
-    """
-    Dependency to get a LocalYoloProvider instance, using either the request-specific
-    model path or the default configured model path.
-    """
-    settings = request.app.state.settings
-    registry = request.app.state.provider_registry
-
-    active_path = model_path or settings.model_path
-
-    if not active_path:
-        raise HTTPException(
-            status_code=400,
-            detail="Local YOLO vision provider not configured. Please supply model_path or set OKEY_MODEL_PATH.",
-        )
-
-    try:
-        return registry.get_local_yolo_provider(active_path)
-    except Exception as e:
-        prefix = (
-            "Failed to initialize request-scoped LocalYoloProvider: "
-            if model_path
-            else "Failed to initialize LocalYoloProvider: "
-        )
-        raise HTTPException(
-            status_code=400,
-            detail=f"{prefix}{str(e)}",
-        )
-
-
-def get_roboflow_provider(
-    request: Request,
-    api_key: Optional[str] = Form(None),
-    workspace: Optional[str] = Form(None),
-    model_id: Optional[str] = Form(None),
-    model_version: Optional[int] = Form(None),
-) -> Any:
-    """
-    Dependency to get a RoboflowProvider instance, using either request-specific
-    parameters or fallback to configured defaults.
-    """
-    settings = request.app.state.settings
-    registry = request.app.state.provider_registry
-
-    active_api_key = api_key or settings.rf_key
-    active_workspace = workspace or settings.rf_workspace
-    active_model_id = model_id or settings.rf_model_id
-    active_version = (
-        model_version if model_version is not None else settings.rf_model_version
-    )
-
-    if not active_api_key:
-        raise HTTPException(
-            status_code=400,
-            detail="Roboflow standard provider not configured. Please supply api_key or set OKEY_RF_KEY.",
-        )
-
-    try:
-        return registry.get_roboflow_provider(
-            api_key=active_api_key,
-            workspace_name=active_workspace,
-            model_id=active_model_id,
-            model_version=active_version,
-        )
-    except Exception as e:
-        prefix = (
-            "Failed to initialize request-scoped RoboflowProvider: "
-            if api_key
-            else "Failed to initialize RoboflowProvider: "
-        )
-        raise HTTPException(
-            status_code=400,
-            detail=f"{prefix}{str(e)}",
-        )
-
-
 def get_roboflow_workflow_provider(
     request: Request,
     api_key: Optional[str] = Form(None),
@@ -143,9 +64,7 @@ def get_roboflow_workflow_provider(
 
     active_api_key = api_key or settings.rf_key
     active_workspace = workspace or settings.rf_workspace
-    active_workflow = (
-        workflow_id or "okey-and-rummikub-vrummikub-p8akb-vr0ef-3-yolov8n-t1-logic"
-    )
+    active_workflow = workflow_id or settings.rf_workflow_id
     active_api_url = api_url or settings.rf_api_url
 
     if not active_api_key:
@@ -162,11 +81,7 @@ def get_roboflow_workflow_provider(
             api_url=active_api_url,
         )
     except Exception as e:
-        prefix = (
-            "Failed to initialize request-scoped RoboflowWorkflowProvider: "
-            if api_key
-            else "Failed to initialize RoboflowWorkflowProvider: "
-        )
+        prefix = "Failed to initialize request-scoped RoboflowWorkflowProvider: " if api_key else "Failed to initialize RoboflowWorkflowProvider: "
         raise HTTPException(
             status_code=400,
             detail=f"{prefix}{str(e)}",

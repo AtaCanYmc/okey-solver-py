@@ -21,30 +21,20 @@ async def lifespan(app: FastAPI):
     registry: VisionProviderRegistry = app.state.provider_registry
 
     # Warm up default provider
-    if settings.model_path:
+    if settings.rf_key:
         try:
-            registry.get_local_yolo_provider(settings.model_path)
-            logger.info(
-                f"Pre-warmed LocalYoloProvider with model: {settings.model_path}"
-            )
-        except Exception as e:
-            logger.exception(f"Warning: Failed to pre-warm local YOLO provider: {e}")
-    elif settings.rf_key:
-        try:
-            registry.get_roboflow_provider(
+            registry.get_roboflow_workflow_provider(
                 api_key=settings.rf_key,
                 workspace_name=settings.rf_workspace,
-                model_id=settings.rf_model_id,
-                model_version=settings.rf_model_version,
+                workflow_id=settings.rf_workflow_id,
+                api_url=settings.rf_api_url,
             )
             logger.info(
-                f"Pre-warmed default RoboflowProvider (Workspace: {settings.rf_workspace}, "
-                f"Model: {settings.rf_model_id}, Version: {settings.rf_model_version})"
+                f"Pre-warmed default RoboflowWorkflowProvider (Workspace: {settings.rf_workspace}, "
+                f"Workflow: {settings.rf_workflow_id})"
             )
         except Exception as e:
-            logger.exception(
-                f"Warning: Failed to pre-warm default Roboflow provider: {e}"
-            )
+            logger.exception(f"Warning: Failed to pre-warm default Roboflow workflow provider: {e}")
 
     yield
 

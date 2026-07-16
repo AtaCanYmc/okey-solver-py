@@ -10,8 +10,6 @@ from okey_vision.errors import OkeyVisionError
 from okey_server.dependencies import (
     get_solver_engine,
     validate_image_file,
-    get_local_yolo_provider,
-    get_roboflow_provider,
     get_roboflow_workflow_provider,
 )
 
@@ -41,9 +39,7 @@ async def run_vision_safe(coro) -> Any:
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         logger.exception("Unexpected server error in vision pipeline")
-        raise HTTPException(
-            status_code=500, detail="An internal server error occurred."
-        )
+        raise HTTPException(status_code=500, detail="An internal server error occurred.")
 
 
 @router.post("/solver/arrange", response_model=Arrangement)
@@ -60,65 +56,22 @@ def arrange_hand(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.exception("Unexpected server error in solver")
-        raise HTTPException(
-            status_code=500, detail="An internal server error occurred."
-        )
+        raise HTTPException(status_code=500, detail="An internal server error occurred.")
 
 
 # ==========================================
-# VISION SOLVE ENDPOINTS (Vision + Solver)
+# VISION SOLVE ENDPOINT (Vision + Solver)
 # ==========================================
 
-
-@router.post("/vision/solve/local", response_model=OrchestratorResult)
-async def solve_vision_local(
-    okey_meta_color: Optional[TileColor] = Form(None),
-    okey_meta_value: Optional[int] = Form(None),
-    image_content: bytes = Depends(validate_image_file),
-    pipeline: Any = Depends(get_local_yolo_provider),
-):
-    """
-    Processes an uploaded board image using a local YOLO model and solves the optimal arrangement.
-    """
-    from okey_orchestrator import VisionSolverEngine
-
-    okey_meta = None
-    if okey_meta_color and okey_meta_value is not None:
-        okey_meta = OkeyMeta(color=okey_meta_color, value=okey_meta_value)
-
-    engine = VisionSolverEngine(pipeline=pipeline, okey_meta=okey_meta)
-    return await run_vision_safe(engine.analyze_frame_async(image_content))
-
-
-@router.post("/vision/solve/roboflow", response_model=OrchestratorResult)
-async def solve_vision_roboflow(
-    okey_meta_color: Optional[TileColor] = Form(None),
-    okey_meta_value: Optional[int] = Form(None),
-    image_content: bytes = Depends(validate_image_file),
-    pipeline: Any = Depends(get_roboflow_provider),
-):
-    """
-    Processes an uploaded board image using standard Roboflow object detection and solves the optimal arrangement.
-    """
-    from okey_orchestrator import VisionSolverEngine
-
-    okey_meta = None
-    if okey_meta_color and okey_meta_value is not None:
-        okey_meta = OkeyMeta(color=okey_meta_color, value=okey_meta_value)
-
-    engine = VisionSolverEngine(pipeline=pipeline, okey_meta=okey_meta)
-    return await run_vision_safe(engine.analyze_frame_async(image_content))
-
-
-@router.post("/vision/solve/roboflow/workflow", response_model=OrchestratorResult)
-async def solve_vision_roboflow_workflow(
+@router.post("/vision/solve", response_model=OrchestratorResult)
+async def solve_vision(
     okey_meta_color: Optional[TileColor] = Form(None),
     okey_meta_value: Optional[int] = Form(None),
     image_content: bytes = Depends(validate_image_file),
     pipeline: Any = Depends(get_roboflow_workflow_provider),
 ):
     """
-    Processes an uploaded board image using custom Roboflow workflows and solves the optimal arrangement.
+    Processes an uploaded board image using Roboflow workflows and solves the optimal arrangement.
     """
     from okey_orchestrator import VisionSolverEngine
 
@@ -131,49 +84,16 @@ async def solve_vision_roboflow_workflow(
 
 
 # ==========================================
-# VISION EXTRACT ENDPOINTS (Vision Only)
+# VISION EXTRACT ENDPOINT (Vision Only)
 # ==========================================
 
-
-@router.post("/vision/extract/local", response_model=ExtractResult)
-async def extract_vision_local(
-    image_content: bytes = Depends(validate_image_file),
-    pipeline: Any = Depends(get_local_yolo_provider),
-):
-    """
-    Detects and extracts the list of Okey tiles from an uploaded image using local YOLO weights.
-    """
-    from okey_vision import VisionEngine
-
-    vision_engine = VisionEngine(pipeline=pipeline)
-    tiles = await run_vision_safe(vision_engine.process_frame_async(image_content))
-    raw_val = getattr(pipeline, "last_raw_response", None)
-    return ExtractResult(tiles=tiles, raw=raw_val)
-
-
-@router.post("/vision/extract/roboflow", response_model=ExtractResult)
-async def extract_vision_roboflow(
-    image_content: bytes = Depends(validate_image_file),
-    pipeline: Any = Depends(get_roboflow_provider),
-):
-    """
-    Detects and extracts the list of Okey tiles from an uploaded image using standard Roboflow models.
-    """
-    from okey_vision import VisionEngine
-
-    vision_engine = VisionEngine(pipeline=pipeline)
-    tiles = await run_vision_safe(vision_engine.process_frame_async(image_content))
-    raw_val = getattr(pipeline, "last_raw_response", None)
-    return ExtractResult(tiles=tiles, raw=raw_val)
-
-
-@router.post("/vision/extract/roboflow/workflow", response_model=ExtractResult)
-async def extract_vision_roboflow_workflow(
+@router.post("/vision/extract", response_model=ExtractResult)
+async def extract_vision(
     image_content: bytes = Depends(validate_image_file),
     pipeline: Any = Depends(get_roboflow_workflow_provider),
 ):
     """
-    Detects and extracts the list of Okey tiles from an uploaded image using custom Roboflow workflows.
+    Detects and extracts the list of Okey tiles from an uploaded image using Roboflow workflows.
     """
     from okey_vision import VisionEngine
 

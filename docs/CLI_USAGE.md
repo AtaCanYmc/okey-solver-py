@@ -25,19 +25,21 @@ okey-solve --tiles RED:5 RED:6 RED:7 BLUE:10 BLUE:11 BLUE:12 JOKER:0
 
 ## 2. Okey Vision CLI (`okey-vision`)
 
-Processes an input camera frame or image file using a local YOLO model to find tiles and runs the solver on the output board state.
+Processes an input camera frame or image file using the Roboflow Workflow API to detect tiles and runs the solver on the output board state.
 
 ### Usage
 ```bash
-okey-vision --image <image_path> --model <yolo_model_path> [--confidence <threshold>]
+okey-vision --image <image_path> --api-key <roboflow_api_key> [--workspace <workspace_name>] [--workflow-id <workflow_id>] [--api-url <endpoint>]
 ```
 
 ### Argument Parameters
 - `--image`: Path to the image file containing the okey board/tiles.
-- `--model`: Path to the local YOLO model (`.pt`) file.
-- `--confidence`: Detection confidence threshold (default: `0.25`).
+- `--api-key`: Roboflow API Key (falls back to `ROBOFLOW_API_KEY` env var if omitted).
+- `--workspace`: Workspace name on Roboflow (default: `ata-dc7ry`).
+- `--workflow-id`: Custom workflow ID configured in Roboflow.
+- `--api-url`: Custom endpoint if running a local inference server (default: `https://serverless.roboflow.com`).
 
 ### Example
 ```bash
-okey-vision --image ./board_layout.jpg --model ./models/best.pt --confidence 0.35
+okey-vision --image ./board_layout.jpg --api-key YOUR_API_KEY
 ```
