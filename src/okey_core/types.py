@@ -1,7 +1,7 @@
 # okey_core/types.py
 from enum import Enum
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class TileColor(str, Enum):
@@ -45,4 +45,33 @@ class Arrangement(BaseModel):
 class OrchestratorResult(BaseModel):
     tiles: List[Tile]
     arrangement: Optional[Arrangement] = None
+
+
+class RoboflowWorkflowImageSize(BaseModel):
+    width: int
+    height: int
+
+
+class RoboflowWorkflowPrediction(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    width: float
+    height: float
+    x: float
+    y: float
+    confidence: float
+    class_id: int
+    class_name: str = Field(alias="class")
+    detection_id: str
+    parent_id: str
+
+
+class RoboflowWorkflowResult(BaseModel):
+    image: RoboflowWorkflowImageSize
+    predictions: List[RoboflowWorkflowPrediction]
+
+
+class RoboflowWorkflowContainer(BaseModel):
+    predictions: RoboflowWorkflowResult
+
 

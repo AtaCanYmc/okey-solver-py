@@ -1,5 +1,17 @@
 # okey_core/__init__.py
-from okey_core.types import TileColor, Tile, MeldType, Meld, OkeyMeta, Arrangement, OrchestratorResult
+from okey_core.types import (
+    TileColor,
+    Tile,
+    MeldType,
+    Meld,
+    OkeyMeta,
+    Arrangement,
+    OrchestratorResult,
+    RoboflowWorkflowImageSize,
+    RoboflowWorkflowPrediction,
+    RoboflowWorkflowResult,
+    RoboflowWorkflowContainer
+)
 from okey_core.errors import OkeyCoreError, InvalidTileError
 
 __all__ = [
@@ -10,6 +22,10 @@ __all__ = [
     "OkeyMeta",
     "Arrangement",
     "OrchestratorResult",
+    "RoboflowWorkflowImageSize",
+    "RoboflowWorkflowPrediction",
+    "RoboflowWorkflowResult",
+    "RoboflowWorkflowContainer",
     "OkeyCoreError",
     "InvalidTileError",
 ]
