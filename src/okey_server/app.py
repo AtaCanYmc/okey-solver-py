@@ -1,9 +1,7 @@
 # okey_server/app.py
-import os
 from contextlib import asynccontextmanager
 
 import uvicorn
-from dotenv import load_dotenv
 from fastapi import FastAPI
 from okey_server import state
 from okey_server.routers import router
@@ -11,10 +9,8 @@ from okey_server.routers import router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    load_dotenv()
-
-    model_path = os.getenv("YOLO_MODEL_PATH")
-    rf_key = os.getenv("ROBOFLOW_API_KEY")
+    model_path = state.model_path
+    rf_key = state.rf_key
 
     if model_path:
         from okey_vision.providers import LocalYoloProvider
@@ -27,20 +23,18 @@ async def lifespan(app: FastAPI):
         # Default fallback to Roboflow standard model if no local model path is specified
         from okey_vision.providers import RoboflowProvider
         key = rf_key or "ROBOFLOW_API_KEY"
-        workspace = os.getenv("ROBOFLOW_WORKSPACE", "ata-dc7ry")
-        model_id = os.getenv("ROBOFLOW_MODEL_ID", "okey-rummikub")
-        version_str = os.getenv("ROBOFLOW_MODEL_VERSION", "1")
-        try:
-            model_version = int(version_str)
-        except ValueError:
-            model_version = 1
+        workspace = state.rf_workspace
+        model_id = state.rf_model_id
+        model_version = state.rf_model_version
+        rf_api_url = state.rf_api_url
 
         try:
             state.vision_pipeline = RoboflowProvider(
                 api_key=key,
                 model_id=model_id,
                 model_version=model_version,
-                workspace_name=workspace
+                workspace_name=workspace,
+                api_url=rf_api_url
             )
             print(
                 f"Loaded default RoboflowProvider (Workspace: {workspace}, Model: {model_id}, Version: {model_version})")
@@ -70,3 +64,4 @@ app.include_router(router, prefix="/api/v1")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
+
