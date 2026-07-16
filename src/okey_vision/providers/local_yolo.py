@@ -3,7 +3,11 @@ from typing import Dict, List, Optional
 import numpy as np
 from okey_vision.types import FrameInput, Detection, BoundingBox
 from okey_core.types import Tile, TileColor
-from okey_vision.providers.base import DEFAULT_COLOR_ALIASES, LabelParserStrategy, FuzzyLabelParser
+from okey_vision.providers.base import (
+    DEFAULT_COLOR_ALIASES,
+    LabelParserStrategy,
+    FuzzyLabelParser,
+)
 
 
 class LocalYoloProvider:

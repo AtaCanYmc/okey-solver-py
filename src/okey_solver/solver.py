@@ -17,13 +17,13 @@ class SolverEngine:
         val = validator or OkeyRuleValidator()
         self.meld_generator = MeldGenerator(val)
         self.strategy = strategy.lower()
-        
+
         self.solver: Union[BacktrackingSolver, GreedySolver]
         if self.strategy == "greedy":
             self.solver = GreedySolver()
         else:
             self.solver = BacktrackingSolver()
-            
+
         self.pair_finder = PairFinder()
 
     def find_best_arrangement(

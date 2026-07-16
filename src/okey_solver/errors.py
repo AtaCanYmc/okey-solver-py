@@ -10,9 +10,11 @@ __all__ = [
 
 class OkeySolverError(OkeyCoreError):
     """Base exception for all okey-solver errors."""
+
     pass
 
 
 class InvalidArrangementError(OkeySolverError):
     """Raised when an arrangement operation fails rules validation."""
+
     pass

@@ -43,7 +43,7 @@ class FuzzyLabelParser:
         if not raw_label:
             raise InvalidTileError(
                 f"Detection {detection.id or index} does not contain a class label.",
-                payload={"detection_id": detection.id or str(index)}
+                payload={"detection_id": detection.id or str(index)},
             )
 
         normalized = raw_label.strip().upper()
@@ -52,7 +52,7 @@ class FuzzyLabelParser:
 
         # 1. Match color key by finding exact matches of aliases in the string
         matched_color_key = None
-        parts = [p for p in re.split(r'[\s\-_]+', normalized) if p]
+        parts = [p for p in re.split(r"[\s\-_]+", normalized) if p]
         for key in sorted(color_aliases.keys(), key=len, reverse=True):
             if len(key) <= 2:
                 if key in parts:
@@ -71,7 +71,9 @@ class FuzzyLabelParser:
             matched_part = None
             for part in parts:
                 letters_only = "".join(c for c in part if c.isalpha() or c in "ÇĞİÖŞÜ")
-                matches = difflib.get_close_matches(letters_only, list(color_aliases.keys()), n=1, cutoff=0.5)
+                matches = difflib.get_close_matches(
+                    letters_only, list(color_aliases.keys()), n=1, cutoff=0.5
+                )
                 if matches:
                     matched_color_key = matches[0]
                     matched_part = part
@@ -83,14 +85,19 @@ class FuzzyLabelParser:
             else:
                 # Fallback if no separators: split letters and digits
                 letters = "".join(c for c in normalized if c.isalpha() or c in "ÇĞİÖŞÜ")
-                matches = difflib.get_close_matches(letters, list(color_aliases.keys()), n=1, cutoff=0.5)
+                matches = difflib.get_close_matches(
+                    letters, list(color_aliases.keys()), n=1, cutoff=0.5
+                )
                 if matches:
                     matched_color_key = matches[0]
                     value_part = "".join(c for c in normalized if c.isdigit())
                 else:
                     raise InvalidTileError(
                         f'Unsupported or unrecognized tile color/label "{raw_label}" on detection {detection.id or index}.',
-                        payload={"detection_id": detection.id or str(index), "label": raw_label}
+                        payload={
+                            "detection_id": detection.id or str(index),
+                            "label": raw_label,
+                        },
                     )
 
         color = color_aliases[matched_color_key]
@@ -100,27 +107,38 @@ class FuzzyLabelParser:
 
         # OCR Digit Confusions translation
         confusion_map = {
-            'S': '5',
-            'O': '0',
-            'I': '1',
-            'L': '1',
-            'Z': '2',
-            'G': '6',
-            'B': '8'
+            "S": "5",
+            "O": "0",
+            "I": "1",
+            "L": "1",
+            "Z": "2",
+            "G": "6",
+            "B": "8",
         }
-        digits_cleaned = "".join(confusion_map.get(c, c) for c in value_part if c.isdigit() or c in confusion_map)
+        digits_cleaned = "".join(
+            confusion_map.get(c, c)
+            for c in value_part
+            if c.isdigit() or c in confusion_map
+        )
 
         if not digits_cleaned.isdigit():
             raise InvalidTileError(
                 f'No valid numeric value found in label "{raw_label}" on detection {detection.id or index}.',
-                payload={"detection_id": detection.id or str(index), "label": raw_label}
+                payload={
+                    "detection_id": detection.id or str(index),
+                    "label": raw_label,
+                },
             )
 
         value = int(digits_cleaned)
         if value < 1 or value > 13:
             raise InvalidTileError(
                 f'Unsupported tile value "{value}" on detection {detection.id or index}.',
-                payload={"detection_id": detection.id or str(index), "label": raw_label, "parsed_value": value}
+                payload={
+                    "detection_id": detection.id or str(index),
+                    "label": raw_label,
+                    "parsed_value": value,
+                },
             )
 
         return Tile(id=detection.id, color=color, value=value)

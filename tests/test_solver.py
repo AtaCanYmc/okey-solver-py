@@ -154,7 +154,7 @@ def test_bridge_intersection_greedy_vs_optimal():
 
 def test_solver_error_payload():
     from okey_solver.errors import OkeySolverError
-    
+
     # Verify custom context payload in OkeySolverError
     payload = {"tile_id": "r5", "reason": "invalid value"}
     err = OkeySolverError("Error message", payload=payload)
@@ -205,12 +205,9 @@ def test_greedy_solver_strategy():
 
 def test_solver_factories():
     from okey_solver import create_standard_okey_solver, create_okey_101_solver
-    
+
     standard_solver = create_standard_okey_solver(strategy="greedy")
     assert standard_solver.strategy == "greedy"
-    
+
     okey_101_solver = create_okey_101_solver(strategy="backtracking")
     assert okey_101_solver.strategy == "backtracking"
-
-
-

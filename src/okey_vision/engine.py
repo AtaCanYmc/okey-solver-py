@@ -50,7 +50,9 @@ class DefaultVisionPipeline:
         classify_fn: Callable[[FrameInput, List[Detection]], List[Tile]],
         preprocess_fn: Optional[Callable[[FrameInput], FrameInput]] = None,
         detect_async_fn: Optional[Callable[[FrameInput], Any]] = None,
-        classify_async_fn: Optional[Callable[[FrameInput, List[Detection]], Any]] = None,
+        classify_async_fn: Optional[
+            Callable[[FrameInput, List[Detection]], Any]
+        ] = None,
         preprocess_async_fn: Optional[Callable[[FrameInput], Any]] = None,
     ):
         self._detect = detect_fn
@@ -124,7 +126,9 @@ class VisionEngine:
             results = await asyncio.gather(*tasks, return_exceptions=True)
             for res in results:
                 if isinstance(res, Exception):
-                    logger.error(f"Observer async execution error: {res}", exc_info=True)
+                    logger.error(
+                        f"Observer async execution error: {res}", exc_info=True
+                    )
 
     def process_frame(self, frame_input: Any) -> List[Tile]:
         frame = adapt_to_frame_input(frame_input, self.frame_adapters)
@@ -212,12 +216,16 @@ class VisionEngine:
 
         # Preprocess
         start_time = time.time()
-        await self.emit_async({"stage": "preprocess", "status": "start", "timestamp": start_time})
+        await self.emit_async(
+            {"stage": "preprocess", "status": "start", "timestamp": start_time}
+        )
         try:
             if hasattr(self.pipeline, "preprocess_async"):
                 prepared_frame = await self.pipeline.preprocess_async(frame)
             else:
-                prepared_frame = await asyncio.to_thread(self.pipeline.preprocess, frame)
+                prepared_frame = await asyncio.to_thread(
+                    self.pipeline.preprocess, frame
+                )
             await self.emit_async(
                 {
                     "stage": "preprocess",
@@ -239,12 +247,16 @@ class VisionEngine:
 
         # Detect
         start_time = time.time()
-        await self.emit_async({"stage": "detect", "status": "start", "timestamp": start_time})
+        await self.emit_async(
+            {"stage": "detect", "status": "start", "timestamp": start_time}
+        )
         try:
             if hasattr(self.pipeline, "detect_async"):
                 detections = await self.pipeline.detect_async(prepared_frame)
             else:
-                detections = await asyncio.to_thread(self.pipeline.detect, prepared_frame)
+                detections = await asyncio.to_thread(
+                    self.pipeline.detect, prepared_frame
+                )
             await self.emit_async(
                 {
                     "stage": "detect",
@@ -266,12 +278,16 @@ class VisionEngine:
 
         # Classify
         start_time = time.time()
-        await self.emit_async({"stage": "classify", "status": "start", "timestamp": start_time})
+        await self.emit_async(
+            {"stage": "classify", "status": "start", "timestamp": start_time}
+        )
         try:
             if hasattr(self.pipeline, "classify_async"):
                 tiles = await self.pipeline.classify_async(prepared_frame, detections)
             else:
-                tiles = await asyncio.to_thread(self.pipeline.classify, prepared_frame, detections)
+                tiles = await asyncio.to_thread(
+                    self.pipeline.classify, prepared_frame, detections
+                )
             await self.emit_async(
                 {
                     "stage": "classify",

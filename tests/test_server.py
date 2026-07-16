@@ -17,7 +17,7 @@ def test_arrange_hand_endpoint():
         "tiles": [
             {"id": "r5", "color": "RED", "value": 5},
             {"id": "r6", "color": "RED", "value": 6},
-            {"id": "r7", "color": "RED", "value": 7}
+            {"id": "r7", "color": "RED", "value": 7},
         ]
     }
     response = client.post("/api/v1/solver/arrange", json=payload)
@@ -31,10 +31,11 @@ def test_dependency_override_mock():
     class MockSolver:
         def find_best_arrangement(self, tiles, okey_meta):
             from okey_core.types import Arrangement
+
             return Arrangement(melds=[], remainingTiles=tiles, totalScore=999)
 
     from okey_server.routers import get_solver_engine
-    
+
     app.dependency_overrides[get_solver_engine] = lambda: MockSolver()
     try:
         payload = {"tiles": []}
@@ -64,7 +65,7 @@ def test_solve_vision_local_endpoint():
                     id="v1",
                     bounds=BoundingBox(x=0, y=0, width=1, height=1),
                     confidence=0.95,
-                    label="RED-5"
+                    label="RED-5",
                 )
             ]
 
@@ -72,9 +73,11 @@ def test_solve_vision_local_endpoint():
             return [Tile(id="red-5", color=TileColor.RED, value=5)]
 
     from okey_server.routers import get_vision_pipeline
+
     app.dependency_overrides[get_vision_pipeline] = lambda: MockLocalPipeline()
     try:
         import io
+
         file_data = {"file": ("test.jpg", io.BytesIO(b"dummydata"), "image/jpeg")}
         response = client.post("/api/v1/vision/solve/local", files=file_data)
         assert response.status_code == 200
@@ -103,7 +106,7 @@ def test_solve_vision_roboflow_endpoint():
                     id="v1",
                     bounds=BoundingBox(x=0, y=0, width=1, height=1),
                     confidence=0.95,
-                    label="BLUE-8"
+                    label="BLUE-8",
                 )
             ]
 
@@ -111,9 +114,11 @@ def test_solve_vision_roboflow_endpoint():
             return [Tile(id="blue-8", color=TileColor.BLUE, value=8)]
 
     from okey_server.routers import get_vision_pipeline
+
     app.dependency_overrides[get_vision_pipeline] = lambda: MockRoboflowPipeline()
     try:
         import io
+
         file_data = {"file": ("test.jpg", io.BytesIO(b"dummydata"), "image/jpeg")}
         response = client.post("/api/v1/vision/solve/roboflow", files=file_data)
         assert response.status_code == 200
@@ -142,7 +147,7 @@ def test_solve_vision_roboflow_workflow_endpoint():
                     id="v1",
                     bounds=BoundingBox(x=0, y=0, width=1, height=1),
                     confidence=0.95,
-                    label="BLACK-11"
+                    label="BLACK-11",
                 )
             ]
 
@@ -150,11 +155,15 @@ def test_solve_vision_roboflow_workflow_endpoint():
             return [Tile(id="black-11", color=TileColor.BLACK, value=11)]
 
     from okey_server.routers import get_vision_pipeline
+
     app.dependency_overrides[get_vision_pipeline] = lambda: MockWorkflowPipeline()
     try:
         import io
+
         file_data = {"file": ("test.jpg", io.BytesIO(b"dummydata"), "image/jpeg")}
-        response = client.post("/api/v1/vision/solve/roboflow/workflow", files=file_data)
+        response = client.post(
+            "/api/v1/vision/solve/roboflow/workflow", files=file_data
+        )
         assert response.status_code == 200
         data = response.json()
         assert len(data["tiles"]) == 1
@@ -166,6 +175,7 @@ def test_solve_vision_roboflow_workflow_endpoint():
 # ==========================================
 # EXTRACTIONS TESTS
 # ==========================================
+
 
 def test_extract_vision_local_endpoint():
     from okey_vision.types import Detection, BoundingBox
@@ -185,7 +195,7 @@ def test_extract_vision_local_endpoint():
                     id="v1",
                     bounds=BoundingBox(x=0, y=0, width=1, height=1),
                     confidence=0.95,
-                    label="RED-5"
+                    label="RED-5",
                 )
             ]
 
@@ -193,9 +203,11 @@ def test_extract_vision_local_endpoint():
             return [Tile(id="red-5", color=TileColor.RED, value=5)]
 
     from okey_server.routers import get_vision_pipeline
+
     app.dependency_overrides[get_vision_pipeline] = lambda: MockLocalPipeline()
     try:
         import io
+
         file_data = {"file": ("test.jpg", io.BytesIO(b"dummydata"), "image/jpeg")}
         response = client.post("/api/v1/vision/extract/local", files=file_data)
         assert response.status_code == 200
@@ -225,7 +237,7 @@ def test_extract_vision_roboflow_endpoint():
                     id="v1",
                     bounds=BoundingBox(x=0, y=0, width=1, height=1),
                     confidence=0.95,
-                    label="BLUE-8"
+                    label="BLUE-8",
                 )
             ]
 
@@ -233,9 +245,11 @@ def test_extract_vision_roboflow_endpoint():
             return [Tile(id="blue-8", color=TileColor.BLUE, value=8)]
 
     from okey_server.routers import get_vision_pipeline
+
     app.dependency_overrides[get_vision_pipeline] = lambda: MockRoboflowPipeline()
     try:
         import io
+
         file_data = {"file": ("test.jpg", io.BytesIO(b"dummydata"), "image/jpeg")}
         response = client.post("/api/v1/vision/extract/roboflow", files=file_data)
         assert response.status_code == 200
@@ -265,7 +279,7 @@ def test_extract_vision_roboflow_workflow_endpoint():
                     id="v1",
                     bounds=BoundingBox(x=0, y=0, width=1, height=1),
                     confidence=0.95,
-                    label="BLACK-11"
+                    label="BLACK-11",
                 )
             ]
 
@@ -273,11 +287,15 @@ def test_extract_vision_roboflow_workflow_endpoint():
             return [Tile(id="black-11", color=TileColor.BLACK, value=11)]
 
     from okey_server.routers import get_vision_pipeline
+
     app.dependency_overrides[get_vision_pipeline] = lambda: MockWorkflowPipeline()
     try:
         import io
+
         file_data = {"file": ("test.jpg", io.BytesIO(b"dummydata"), "image/jpeg")}
-        response = client.post("/api/v1/vision/extract/roboflow/workflow", files=file_data)
+        response = client.post(
+            "/api/v1/vision/extract/roboflow/workflow", files=file_data
+        )
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data["tiles"], list)
@@ -289,9 +307,12 @@ def test_extract_vision_roboflow_workflow_endpoint():
 
 def test_solve_vision_local_with_request_params():
     import io
+
     file_data = {"file": ("test.jpg", io.BytesIO(b"dummydata"), "image/jpeg")}
     form_data = {"model_path": "non_existent_file.pt"}
-    response = client.post("/api/v1/vision/solve/local", files=file_data, data=form_data)
+    response = client.post(
+        "/api/v1/vision/solve/local", files=file_data, data=form_data
+    )
     assert response.status_code == 400
     assert "Failed to initialize request-scoped" in response.json()["detail"]
 
@@ -299,42 +320,49 @@ def test_solve_vision_local_with_request_params():
 def test_solve_vision_roboflow_request_params():
     from PIL import Image
     import io
-    img = Image.new('RGB', (10, 10), color='red')
+
+    img = Image.new("RGB", (10, 10), color="red")
     img_bytes = io.BytesIO()
-    img.save(img_bytes, format='JPEG')
+    img.save(img_bytes, format="JPEG")
     img_bytes.seek(0)
-    
+
     file_data = {"file": ("test.jpg", img_bytes, "image/jpeg")}
     form_data = {
         "api_key": "mock_api_key",
         "workspace": "mock_workspace",
         "model_id": "mock_model_id",
-        "model_version": 1
+        "model_version": 1,
     }
-    response = client.post("/api/v1/vision/solve/roboflow", files=file_data, data=form_data)
+    response = client.post(
+        "/api/v1/vision/solve/roboflow", files=file_data, data=form_data
+    )
     # Lazy load succeeds in constructor, but detect fails due to invalid api_key connection error (500)
     assert response.status_code == 500
-    assert "Roboflow API connection failed" in response.json()["detail"] or "Roboflow API async connection failed" in response.json()["detail"]
+    assert (
+        "Roboflow API connection failed" in response.json()["detail"]
+        or "Roboflow API async connection failed" in response.json()["detail"]
+    )
 
 
 def test_solve_vision_roboflow_workflow_request_params():
     from PIL import Image
     import io
-    img = Image.new('RGB', (10, 10), color='red')
+
+    img = Image.new("RGB", (10, 10), color="red")
     img_bytes = io.BytesIO()
-    img.save(img_bytes, format='JPEG')
+    img.save(img_bytes, format="JPEG")
     img_bytes.seek(0)
-    
+
     file_data = {"file": ("test.jpg", img_bytes, "image/jpeg")}
     form_data = {
         "api_key": "mock_api_key",
         "workspace": "mock_workspace",
         "workflow_id": "mock_workflow_id",
-        "api_url": "https://detect.roboflow.com"
+        "api_url": "https://detect.roboflow.com",
     }
-    response = client.post("/api/v1/vision/solve/roboflow/workflow", files=file_data, data=form_data)
+    response = client.post(
+        "/api/v1/vision/solve/roboflow/workflow", files=file_data, data=form_data
+    )
     # Reaches run_workflow and fails to connect to mock_api_key (500)
     assert response.status_code == 500
     assert "Error querying Roboflow Workflow API" in response.json()["detail"]
-
-
