@@ -79,6 +79,3 @@ class RoboflowWorkflowLabelVisualization(BaseModel):
 class RoboflowWorkflowContainer(BaseModel):
     model_output: RoboflowWorkflowResult
     label_visualization_output: Optional[RoboflowWorkflowLabelVisualization] = None
-
-
-
