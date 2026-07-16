@@ -49,7 +49,7 @@ class LocalYoloProvider:
 
         results_list = list(results)
         result = results_list[0]
-        boxes = result.boxes
+        boxes = getattr(result, "boxes", None)
 
         if boxes is not None:
             for idx, box in enumerate(boxes):
