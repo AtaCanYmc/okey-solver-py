@@ -1,7 +1,11 @@
 # okey_solver/__init__.py
 from okey_solver.types import TileColor, Tile, MeldType, Meld, OkeyMeta, Arrangement
 from okey_solver.rules import OkeyRuleValidator, RuleValidator
-from okey_solver.solver import SolverEngine, create_standard_okey_solver, create_okey_101_solver
+from okey_solver.solver import (
+    SolverEngine,
+    create_standard_okey_solver,
+    create_okey_101_solver,
+)
 from okey_solver.meld_generator import MeldGenerator
 from okey_solver.backtracking_solver import BacktrackingSolver
 from okey_solver.pair_finder import PairFinder
@@ -32,4 +36,5 @@ __all__ = [
 ]
 
 import logging
+
 logging.getLogger("okey_solver").addHandler(logging.NullHandler())

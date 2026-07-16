@@ -57,4 +57,5 @@ __all__ = [
 ]
 
 import logging
+
 logging.getLogger("okey_vision").addHandler(logging.NullHandler())

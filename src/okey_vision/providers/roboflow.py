@@ -6,7 +6,11 @@ from roboflow import Roboflow
 from okey_vision.types import FrameInput, Detection, BoundingBox
 from okey_core.types import Tile, TileColor
 from okey_vision.errors import ProviderError
-from okey_vision.providers.base import DEFAULT_COLOR_ALIASES, LabelParserStrategy, FuzzyLabelParser
+from okey_vision.providers.base import (
+    DEFAULT_COLOR_ALIASES,
+    LabelParserStrategy,
+    FuzzyLabelParser,
+)
 
 
 class RoboflowProvider:
@@ -15,14 +19,14 @@ class RoboflowProvider:
     """
 
     def __init__(
-            self,
-            api_key: str,
-            model_id: str = "rummikub-p8akb-vr0ef-3-yolov8n-t1",
-            workspace_name="ata-dc7ry",
-            model_version: Union[int, str] = 1,
-            label_map: Optional[Dict[str, TileColor]] = None,
-            parser: Optional[LabelParserStrategy] = None,
-            api_url: Optional[str] = None
+        self,
+        api_key: str,
+        model_id: str = "rummikub-p8akb-vr0ef-3-yolov8n-t1",
+        workspace_name="ata-dc7ry",
+        model_version: Union[int, str] = 1,
+        label_map: Optional[Dict[str, TileColor]] = None,
+        parser: Optional[LabelParserStrategy] = None,
+        api_url: Optional[str] = None,
     ):
         self.api_key = api_key
         # Split workspace name if embedded in model_id (e.g. "workspace/project")
@@ -52,8 +56,9 @@ class RoboflowProvider:
                 # If custom api_url is provided, try setting it on roboflow config
                 if self.api_url:
                     import roboflow.config as rf_config
+
                     rf_config.API_URL = self.api_url
-                
+
                 project_client = rf.workspace(self.workspace).project(self.project)
                 self._model = project_client.version(int(self.model_version)).model
             except Exception as e:
@@ -72,22 +77,18 @@ class RoboflowProvider:
                 raise ValueError("Could not decode image bytes into numpy array.")
             return img
         else:
-            raise ValueError(
-                "RoboflowProvider requires numpy array or image bytes."
-            )
+            raise ValueError("RoboflowProvider requires numpy array or image bytes.")
 
     def detect(self, frame: FrameInput) -> List[Detection]:
         image = self._prepare_image(frame)
-        
+
         try:
             model = self._get_model()
             # Predict using the loaded model
             res_data = model.predict(image, confidence=40, overlap=30).json()
             self.last_raw_response = res_data
         except Exception as e:
-            raise ProviderError(
-                f"Roboflow API connection failed: {e}"
-            ) from e
+            raise ProviderError(f"Roboflow API connection failed: {e}") from e
 
         predictions = res_data.get("predictions", [])
         detections: List[Detection] = []
@@ -117,12 +118,11 @@ class RoboflowProvider:
 
     async def detect_async(self, frame: FrameInput) -> List[Detection]:
         import asyncio
+
         try:
             return await asyncio.to_thread(self.detect, frame)
         except Exception as e:
-            raise ProviderError(
-                f"Roboflow API async connection failed: {e}"
-            ) from e
+            raise ProviderError(f"Roboflow API async connection failed: {e}") from e
 
     def preprocess(self, frame: FrameInput) -> FrameInput:
         return frame
@@ -132,4 +132,3 @@ class RoboflowProvider:
             self.parser.parse_tile(det, idx, self.color_aliases)
             for idx, det in enumerate(detections)
         ]
-

@@ -7,6 +7,7 @@ from okey_vision.types import FrameInput
 # Lazy imports for optional dependencies
 try:
     from PIL import Image
+
     HAS_PIL = True
 except ImportError:
     HAS_PIL = False
@@ -14,6 +15,7 @@ except ImportError:
 try:
     import numpy as np
     import cv2
+
     HAS_CV2_NUMPY = True
 except ImportError:
     HAS_CV2_NUMPY = False

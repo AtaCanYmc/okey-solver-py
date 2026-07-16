@@ -17,7 +17,7 @@ class BacktrackingSolver:
 
         # DTO Mapping: Map Pydantic models to lightweight DTOs
         light_tiles = [LightTile(t.id, t.color, t.value) for t in resolved_tiles]
-        
+
         # Map melds and their constituent tiles
         light_melds = []
         for m in all_possible_melds:
@@ -63,7 +63,7 @@ class BacktrackingSolver:
                 for t in candidate_meld.tiles:
                     bit = tile_to_bit[t.id]
                     if (mask & (1 << bit)) != 0:
-                        meld_mask |= (1 << bit)
+                        meld_mask |= 1 << bit
                     else:
                         can_form = False
                         break

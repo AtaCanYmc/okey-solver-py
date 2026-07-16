@@ -4,7 +4,11 @@ import numpy as np
 from okey_vision.types import FrameInput, Detection, BoundingBox
 from okey_core.types import Tile, TileColor
 from okey_vision.errors import ProviderError
-from okey_vision.providers.base import DEFAULT_COLOR_ALIASES, LabelParserStrategy, FuzzyLabelParser
+from okey_vision.providers.base import (
+    DEFAULT_COLOR_ALIASES,
+    LabelParserStrategy,
+    FuzzyLabelParser,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -15,13 +19,13 @@ class RoboflowWorkflowProvider:
     """
 
     def __init__(
-            self,
-            api_key: str,
-            workspace_name: str = "ata-dc7ry",
-            workflow_id: str = "okey-and-rummikub-vrummikub-p8akb-vr0ef-3-yolov8n-t1-logic",
-            api_url: str = "https://serverless.roboflow.com",
-            label_map: Optional[Dict[str, TileColor]] = None,
-            parser: Optional[LabelParserStrategy] = None,
+        self,
+        api_key: str,
+        workspace_name: str = "ata-dc7ry",
+        workflow_id: str = "okey-and-rummikub-vrummikub-p8akb-vr0ef-3-yolov8n-t1-logic",
+        api_url: str = "https://serverless.roboflow.com",
+        label_map: Optional[Dict[str, TileColor]] = None,
+        parser: Optional[LabelParserStrategy] = None,
     ):
         from inference_sdk import InferenceHTTPClient
 
@@ -63,7 +67,10 @@ class RoboflowWorkflowProvider:
             logger.error(f"Error querying Roboflow Workflow API: {e}", exc_info=True)
             raise ProviderError(
                 f"Error querying Roboflow Workflow API: {e}",
-                payload={"workspace_name": self.workspace_name, "workflow_id": self.workflow_id}
+                payload={
+                    "workspace_name": self.workspace_name,
+                    "workflow_id": self.workflow_id,
+                },
             ) from e
 
         def find_predictions_list(data) -> Optional[List[dict]]:
@@ -71,7 +78,12 @@ class RoboflowWorkflowProvider:
                 if len(data) > 0 and isinstance(data[0], dict):
                     first = data[0]
                     # Bounding box structures typically have at least x, y, width, height
-                    if "x" in first and "y" in first and "width" in first and "height" in first:
+                    if (
+                        "x" in first
+                        and "y" in first
+                        and "width" in first
+                        and "height" in first
+                    ):
                         return data
                 for item in data:
                     found = find_predictions_list(item)
@@ -108,12 +120,12 @@ class RoboflowWorkflowProvider:
             if not predictions and result:
                 raise ProviderError(
                     "Unexpected format: could not extract predictions list from workflow result dictionary.",
-                    payload={"result": result}
+                    payload={"result": result},
                 )
         else:
             raise ProviderError(
                 f"Unexpected workflow result type: expected dict or list, got {type(result)}",
-                payload={"result": result}
+                payload={"result": result},
             )
 
         detections: List[Detection] = []
