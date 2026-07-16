@@ -1,3 +1,4 @@
+# tests/test_vision.py
 import numpy as np
 import pytest
 from okey_vision import (
@@ -10,7 +11,6 @@ from okey_vision import (
 from okey_orchestrator import VisionSolverEngine
 from okey_vision.providers import (
     DEFAULT_COLOR_ALIASES,
-    RoboflowProvider,
     RoboflowWorkflowProvider,
 )
 from okey_solver import Tile, TileColor, MeldType
@@ -194,34 +194,6 @@ def test_invalid_tile_error_raised():
     assert exc_info.value.payload["parsed_value"] == 99
 
 
-def test_provider_error_raised_roboflow():
-    # Use an invalid URL or key to trigger ProviderError
-    provider = RoboflowProvider(api_key="invalid_key")
-    provider.base_url = "https://invalid.domain.roboflow.com"
-
-    from okey_vision.types import FrameInput
-
-    dummy_frame = FrameInput(data=np.zeros((100, 100, 3), dtype=np.uint8))
-
-    with pytest.raises(ProviderError) as exc_info:
-        provider.detect(dummy_frame)
-    assert "Roboflow API connection failed" in str(exc_info.value)
-
-
-@pytest.mark.asyncio
-async def test_provider_error_raised_roboflow_async():
-    provider = RoboflowProvider(api_key="invalid_key")
-    provider.base_url = "https://invalid.domain.roboflow.com"
-
-    from okey_vision.types import FrameInput
-
-    dummy_frame = FrameInput(data=np.zeros((100, 100, 3), dtype=np.uint8))
-
-    with pytest.raises(ProviderError) as exc_info:
-        await provider.detect_async(dummy_frame)
-    assert "Roboflow API async connection failed" in str(exc_info.value)
-
-
 def test_workflow_provider_error_unexpected_response():
     provider = RoboflowWorkflowProvider(api_key="dummy")
 
@@ -263,34 +235,6 @@ async def test_async_observers():
 
     await engine.emit_async({"test": "data"})
     assert len(events) == 2
-
-
-def test_custom_label_parser_strategy():
-    from okey_vision.providers import LocalYoloProvider
-
-    class CustomParser:
-        def parse_tile(self, detection, index, color_aliases):
-            return Tile(id=detection.id, color=TileColor.RED, value=12)
-
-    # Mock ultralytics module to prevent loading a real model file
-    import sys
-    from unittest.mock import MagicMock
-
-    sys.modules["ultralytics"] = MagicMock()
-
-    provider = LocalYoloProvider(model_path="dummy.pt", parser=CustomParser())
-
-    dummy_detection = Detection(
-        id="custom",
-        bounds=BoundingBox(x=0, y=0, width=1, height=1),
-        confidence=0.9,
-        label="BLUE-10",
-    )
-
-    tiles = provider.classify(None, [dummy_detection])
-    assert len(tiles) == 1
-    assert tiles[0].color == TileColor.RED
-    assert tiles[0].value == 12
 
 
 def test_vision_solver_engine_strategy_selection():

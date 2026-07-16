@@ -3,12 +3,12 @@ import argparse
 import sys
 import os
 from okey_orchestrator import VisionSolverEngine
-from okey_vision.providers import LocalYoloProvider
+from okey_vision.providers import RoboflowWorkflowProvider
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Okey Vision CLI - Detect tiles in an image and solve the hand arrangement."
+        description="Okey Vision CLI - Detect tiles in an image using Roboflow Workflows and solve the hand arrangement."
     )
     parser.add_argument(
         "--image",
@@ -16,13 +16,24 @@ def main():
         help="Path to the image file containing the okey board / tiles.",
     )
     parser.add_argument(
-        "--model", required=True, help="Path to the local YOLO model (.pt) file."
+        "--api-key",
+        required=True,
+        help="Roboflow API Key (falls back to ROBOFLOW_API_KEY env var if empty).",
     )
     parser.add_argument(
-        "--confidence",
-        type=float,
-        default=0.25,
-        help="Confidence threshold for YOLO model detections (default: 0.25).",
+        "--workspace",
+        default="ata-dc7ry",
+        help="Roboflow Workspace name (default: ata-dc7ry).",
+    )
+    parser.add_argument(
+        "--workflow-id",
+        default="okey-and-rummikub-vrummikub-p8akb-vr0ef-3-yolov8n-t1-logic",
+        help="Roboflow Workflow ID.",
+    )
+    parser.add_argument(
+        "--api-url",
+        default="https://serverless.roboflow.com",
+        help="Roboflow Workflow API Endpoint URL.",
     )
 
     args = parser.parse_args()
@@ -31,20 +42,27 @@ def main():
         print(f"Error: Image path '{args.image}' does not exist.", file=sys.stderr)
         sys.exit(1)
 
-    if not os.path.exists(args.model):
-        print(f"Error: Model path '{args.model}' does not exist.", file=sys.stderr)
+    api_key = args.api_key or os.getenv("ROBOFLOW_API_KEY")
+    if not api_key:
+        print(
+            "Error: Roboflow API key is required. Pass --api-key or set ROBOFLOW_API_KEY env var.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     print("=== Okey Vision CLI ===")
-    print(f"Loading YOLO model from: {args.model}")
+    print(f"Loading Roboflow Workflow ID: {args.workflow_id}")
 
-    # Initialize LocalYoloProvider as the detection/classification pipeline
+    # Initialize RoboflowWorkflowProvider as the detection/classification pipeline
     try:
-        provider = LocalYoloProvider(
-            model_path=args.model, confidence_threshold=args.confidence
+        provider = RoboflowWorkflowProvider(
+            api_key=api_key,
+            workspace_name=args.workspace,
+            workflow_id=args.workflow_id,
+            api_url=args.api_url,
         )
     except Exception as e:
-        print(f"Error initializing local YOLO provider: {e}", file=sys.stderr)
+        print(f"Error initializing Roboflow Workflow provider: {e}", file=sys.stderr)
         sys.exit(1)
 
     # Initialize orchestrator engine

@@ -12,7 +12,7 @@ graph TD
     Server -->|Content| Orchestrator[okey_orchestrator: VisionSolverEngine]
     
     subgraph Decoupled Layers
-        Orchestrator -->|Image Frame| Vision[okey_vision: YOLO/Roboflow]
+        Orchestrator -->|Image Frame| Vision[okey_vision: Roboflow Workflow]
         Vision -->|Label Parsing Strategy| Parser[FuzzyLabelParser / CustomParser]
         Vision -->|Parsed Tiles| Core[okey_core: Shared Types]
         Orchestrator -->|Resolved Tiles| Solver[okey_solver: SolverEngine]
@@ -25,23 +25,14 @@ graph TD
     Server -->|JSON Response| Client
 ```
 
-## Model Providers
+## Model Provider
 
-The `okey_vision` submodule supports multiple detection and classification backends via the following provider classes:
+The `okey_vision` submodule uses the modern Roboflow Inference SDK Workflow API to query custom detection workflows on serverless infrastructure.
 
-### 1. `LocalYoloProvider`
-Runs detection locally using the `ultralytics` package with a local PyTorch model file (`.pt`).
-- **Dependencies**: `ultralytics` (optional extra: `poetry install -E vision`).
-- **Use Case**: Offline or low-latency local processing.
-
-### 2. `RoboflowProvider`
-Uses the HTTP-based Roboflow Object Detection API endpoints.
-- **Dependencies**: `requests` (optional extra: `poetry install -E vision`).
-- **Use Case**: Simple cloud-hosted object detection.
-
-### 3. `RoboflowWorkflowProvider`
-Uses the modern Roboflow Inference SDK Workflow API to query arbitrary custom detection workflows on serverless infrastructure.
+### `RoboflowWorkflowProvider`
+Queries multi-stage visual logic workflows from Roboflow and parses the predictions into core tile models.
 - **Dependencies**: `inference-sdk`.
-- **Use Case**: Advanced multi-stage visual logic workflows.
+- **Use Case**: Advanced visual logic workflows, hosting/scaling models in the cloud.
+
 
 

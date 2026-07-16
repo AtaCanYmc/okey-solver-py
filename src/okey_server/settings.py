@@ -8,11 +8,9 @@ class OkeyServerSettings(BaseSettings):
         env_prefix="OKEY_", case_sensitive=False, extra="ignore"
     )
 
-    model_path: Optional[str] = None
     rf_key: Optional[str] = None
     rf_workspace: str = "ata-dc7ry"
-    rf_model_id: str = "okey-rummikub"
-    rf_model_version: int = 1
+    rf_workflow_id: str = "okey-and-rummikub-vrummikub-p8akb-vr0ef-3-yolov8n-t1-logic"
     rf_api_url: Optional[str] = None
 
     # Security controls
