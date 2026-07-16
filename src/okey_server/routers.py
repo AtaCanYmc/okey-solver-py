@@ -93,6 +93,7 @@ async def solve_vision_roboflow(
         okey_meta_color: Optional[TileColor] = Form(None),
         okey_meta_value: Optional[int] = Form(None),
         api_key: Optional[str] = Form(None),
+        workspace: Optional[str] = Form(None),
         model_id: Optional[str] = Form(None),
         model_version: Optional[int] = Form(1),
         pipeline: Optional[Any] = Depends(get_vision_pipeline),
@@ -107,11 +108,13 @@ async def solve_vision_roboflow(
     if api_key:
         m_id = model_id or "rummikub-p8akb-vr0ef-2-yolov8n-t1"
         v_num = model_version if model_version is not None else 1
+        ws = workspace or "ata-dc7ry"
         try:
             active_pipeline = RoboflowProvider(
                 api_key=api_key,
                 model_id=m_id,
-                model_version=v_num
+                model_version=v_num,
+                workspace_name=ws
             )
         except Exception as e:
             raise HTTPException(
@@ -250,6 +253,7 @@ async def extract_vision_local(
 async def extract_vision_roboflow(
         file: UploadFile = File(...),
         api_key: Optional[str] = Form(None),
+        workspace: Optional[str] = Form(None),
         model_id: Optional[str] = Form(None),
         model_version: Optional[int] = Form(1),
         pipeline: Optional[Any] = Depends(get_vision_pipeline),
@@ -264,11 +268,13 @@ async def extract_vision_roboflow(
     if api_key:
         m_id = model_id or "rummikub-p8akb-vr0ef-2-yolov8n-t1"
         v_num = model_version if model_version is not None else 1
+        ws = workspace or "ata-dc7ry"
         try:
             active_pipeline = RoboflowProvider(
                 api_key=api_key,
                 model_id=m_id,
-                model_version=v_num
+                model_version=v_num,
+                workspace_name=ws
             )
         except Exception as e:
             raise HTTPException(
