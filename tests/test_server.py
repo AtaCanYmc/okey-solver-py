@@ -200,9 +200,9 @@ def test_extract_vision_local_endpoint():
         response = client.post("/api/v1/vision/extract/local", files=file_data)
         assert response.status_code == 200
         data = response.json()
-        assert isinstance(data, list)
-        assert len(data) == 1
-        assert data[0]["id"] == "red-5"
+        assert isinstance(data["tiles"], list)
+        assert len(data["tiles"]) == 1
+        assert data["tiles"][0]["id"] == "red-5"
     finally:
         app.dependency_overrides.clear()
 
@@ -240,9 +240,9 @@ def test_extract_vision_roboflow_endpoint():
         response = client.post("/api/v1/vision/extract/roboflow", files=file_data)
         assert response.status_code == 200
         data = response.json()
-        assert isinstance(data, list)
-        assert len(data) == 1
-        assert data[0]["id"] == "blue-8"
+        assert isinstance(data["tiles"], list)
+        assert len(data["tiles"]) == 1
+        assert data["tiles"][0]["id"] == "blue-8"
     finally:
         app.dependency_overrides.clear()
 
@@ -280,9 +280,9 @@ def test_extract_vision_roboflow_workflow_endpoint():
         response = client.post("/api/v1/vision/extract/roboflow/workflow", files=file_data)
         assert response.status_code == 200
         data = response.json()
-        assert isinstance(data, list)
-        assert len(data) == 1
-        assert data[0]["id"] == "black-11"
+        assert isinstance(data["tiles"], list)
+        assert len(data["tiles"]) == 1
+        assert data["tiles"][0]["id"] == "black-11"
     finally:
         app.dependency_overrides.clear()
 

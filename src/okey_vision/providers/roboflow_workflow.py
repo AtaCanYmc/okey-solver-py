@@ -58,6 +58,7 @@ class RoboflowWorkflowProvider:
                 images={"images": image_input},
                 use_cache=True,
             )
+            self.last_raw_response = result
         except Exception as e:
             logger.error(f"Error querying Roboflow Workflow API: {e}", exc_info=True)
             raise ProviderError(

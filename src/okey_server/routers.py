@@ -23,6 +23,11 @@ class ArrangeRequest(BaseModel):
     okey_meta: Optional[OkeyMeta] = None
 
 
+class ExtractResult(BaseModel):
+    tiles: List[Tile]
+    raw: Optional[Any] = None
+
+
 @router.post("/solver/arrange", response_model=Arrangement)
 def arrange_hand(
         req: ArrangeRequest,
@@ -212,7 +217,7 @@ async def solve_vision_roboflow_workflow(
 # VISION EXTRACT ENDPOINTS (Vision Only)
 # ==========================================
 
-@router.post("/vision/extract/local", response_model=List[Tile])
+@router.post("/vision/extract/local", response_model=ExtractResult)
 async def extract_vision_local(
         file: UploadFile = File(...),
         model_path: Optional[str] = Form(None),
@@ -249,12 +254,13 @@ async def extract_vision_local(
         from okey_vision import VisionEngine
         vision_engine = VisionEngine(pipeline=active_pipeline)
         tiles = await vision_engine.process_frame_async(content)
-        return tiles
+        raw_val = getattr(active_pipeline, "last_raw_response", None)
+        return ExtractResult(tiles=tiles, raw=raw_val)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/vision/extract/roboflow", response_model=List[Tile])
+@router.post("/vision/extract/roboflow", response_model=ExtractResult)
 async def extract_vision_roboflow(
         file: UploadFile = File(...),
         api_key: Optional[str] = Form(None),
@@ -303,12 +309,13 @@ async def extract_vision_roboflow(
         from okey_vision import VisionEngine
         vision_engine = VisionEngine(pipeline=active_pipeline)
         tiles = await vision_engine.process_frame_async(content)
-        return tiles
+        raw_val = getattr(active_pipeline, "last_raw_response", None)
+        return ExtractResult(tiles=tiles, raw=raw_val)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/vision/extract/roboflow/workflow", response_model=List[Tile])
+@router.post("/vision/extract/roboflow/workflow", response_model=ExtractResult)
 async def extract_vision_roboflow_workflow(
         file: UploadFile = File(...),
         api_key: Optional[str] = Form(None),
@@ -359,6 +366,7 @@ async def extract_vision_roboflow_workflow(
         from okey_vision import VisionEngine
         vision_engine = VisionEngine(pipeline=active_pipeline)
         tiles = await vision_engine.process_frame_async(content)
-        return tiles
+        raw_val = getattr(active_pipeline, "last_raw_response", None)
+        return ExtractResult(tiles=tiles, raw=raw_val)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

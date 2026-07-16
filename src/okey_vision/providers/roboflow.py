@@ -83,6 +83,7 @@ class RoboflowProvider:
             model = self._get_model()
             # Predict using the loaded model
             res_data = model.predict(image, confidence=40, overlap=30).json()
+            self.last_raw_response = res_data
         except Exception as e:
             raise ProviderError(
                 f"Roboflow API connection failed: {e}"
