@@ -10,6 +10,7 @@ class VisionProviderRegistry:
         key = f"local_yolo:{model_path}"
         if key not in self._cache:
             from okey_vision.providers import LocalYoloProvider
+
             self._cache[key] = LocalYoloProvider(model_path=model_path)
         return self._cache[key]
 
@@ -23,6 +24,7 @@ class VisionProviderRegistry:
         key = f"roboflow:{api_key}:{workspace_name}:{model_id}:{model_version}"
         if key not in self._cache:
             from okey_vision.providers import RoboflowProvider
+
             self._cache[key] = RoboflowProvider(
                 api_key=api_key,
                 workspace_name=workspace_name,
@@ -41,6 +43,7 @@ class VisionProviderRegistry:
         key = f"roboflow_wf:{api_key}:{workspace_name}:{workflow_id}:{api_url}"
         if key not in self._cache:
             from okey_vision.providers import RoboflowWorkflowProvider
+
             kwargs = {}
             if api_url:
                 kwargs["api_url"] = api_url
@@ -48,6 +51,6 @@ class VisionProviderRegistry:
                 api_key=api_key,
                 workspace_name=workspace_name,
                 workflow_id=workflow_id,
-                **kwargs
+                **kwargs,
             )
         return self._cache[key]

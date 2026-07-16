@@ -11,7 +11,7 @@ from okey_core.types import (
     RoboflowWorkflowPrediction,
     RoboflowWorkflowResult,
     RoboflowWorkflowContainer,
-    RoboflowWorkflowLabelVisualization
+    RoboflowWorkflowLabelVisualization,
 )
 from okey_core.errors import OkeyCoreError, InvalidTileError
 

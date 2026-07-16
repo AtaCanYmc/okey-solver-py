@@ -24,7 +24,9 @@ async def lifespan(app: FastAPI):
     if settings.model_path:
         try:
             registry.get_local_yolo_provider(settings.model_path)
-            logger.info(f"Pre-warmed LocalYoloProvider with model: {settings.model_path}")
+            logger.info(
+                f"Pre-warmed LocalYoloProvider with model: {settings.model_path}"
+            )
         except Exception as e:
             logger.exception(f"Warning: Failed to pre-warm local YOLO provider: {e}")
     elif settings.rf_key:
@@ -40,7 +42,9 @@ async def lifespan(app: FastAPI):
                 f"Model: {settings.rf_model_id}, Version: {settings.rf_model_version})"
             )
         except Exception as e:
-            logger.exception(f"Warning: Failed to pre-warm default Roboflow provider: {e}")
+            logger.exception(
+                f"Warning: Failed to pre-warm default Roboflow provider: {e}"
+            )
 
     yield
 

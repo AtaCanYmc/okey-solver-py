@@ -15,24 +15,12 @@ def main():
     parser.add_argument(
         "--port", type=int, default=8000, help="Port to listen on (default: 8000)"
     )
-    parser.add_argument(
-        "--model", help="Path to the local YOLO model (.pt) file."
-    )
-    parser.add_argument(
-        "--rf-key", help="Roboflow API Key."
-    )
-    parser.add_argument(
-        "--rf-workspace", help="Roboflow Workspace name."
-    )
-    parser.add_argument(
-        "--rf-model-id", help="Roboflow Model ID."
-    )
-    parser.add_argument(
-        "--rf-model-version", type=int, help="Roboflow Model Version."
-    )
-    parser.add_argument(
-        "--rf-api-url", help="Roboflow custom API URL."
-    )
+    parser.add_argument("--model", help="Path to the local YOLO model (.pt) file.")
+    parser.add_argument("--rf-key", help="Roboflow API Key.")
+    parser.add_argument("--rf-workspace", help="Roboflow Workspace name.")
+    parser.add_argument("--rf-model-id", help="Roboflow Model ID.")
+    parser.add_argument("--rf-model-version", type=int, help="Roboflow Model Version.")
+    parser.add_argument("--rf-api-url", help="Roboflow custom API URL.")
 
     args = parser.parse_args()
 
@@ -58,11 +46,12 @@ def main():
     except ImportError:
         print(
             "Error: uvicorn is not installed. Install it using 'pip install okey-solver-py[server]'",
-            file=sys.stderr
+            file=sys.stderr,
         )
         sys.exit(1)
 
     from okey_server.app import app
+
     app.state.settings = settings
 
     print(f"Starting Okey Server on http://{args.host}:{args.port}")

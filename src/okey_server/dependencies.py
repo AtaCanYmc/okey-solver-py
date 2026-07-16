@@ -70,7 +70,11 @@ def get_local_yolo_provider(
     try:
         return registry.get_local_yolo_provider(active_path)
     except Exception as e:
-        prefix = "Failed to initialize request-scoped LocalYoloProvider: " if model_path else "Failed to initialize LocalYoloProvider: "
+        prefix = (
+            "Failed to initialize request-scoped LocalYoloProvider: "
+            if model_path
+            else "Failed to initialize LocalYoloProvider: "
+        )
         raise HTTPException(
             status_code=400,
             detail=f"{prefix}{str(e)}",
@@ -94,7 +98,9 @@ def get_roboflow_provider(
     active_api_key = api_key or settings.rf_key
     active_workspace = workspace or settings.rf_workspace
     active_model_id = model_id or settings.rf_model_id
-    active_version = model_version if model_version is not None else settings.rf_model_version
+    active_version = (
+        model_version if model_version is not None else settings.rf_model_version
+    )
 
     if not active_api_key:
         raise HTTPException(
@@ -110,7 +116,11 @@ def get_roboflow_provider(
             model_version=active_version,
         )
     except Exception as e:
-        prefix = "Failed to initialize request-scoped RoboflowProvider: " if api_key else "Failed to initialize RoboflowProvider: "
+        prefix = (
+            "Failed to initialize request-scoped RoboflowProvider: "
+            if api_key
+            else "Failed to initialize RoboflowProvider: "
+        )
         raise HTTPException(
             status_code=400,
             detail=f"{prefix}{str(e)}",
@@ -133,7 +143,9 @@ def get_roboflow_workflow_provider(
 
     active_api_key = api_key or settings.rf_key
     active_workspace = workspace or settings.rf_workspace
-    active_workflow = workflow_id or "okey-and-rummikub-vrummikub-p8akb-vr0ef-3-yolov8n-t1-logic"
+    active_workflow = (
+        workflow_id or "okey-and-rummikub-vrummikub-p8akb-vr0ef-3-yolov8n-t1-logic"
+    )
     active_api_url = api_url or settings.rf_api_url
 
     if not active_api_key:
@@ -150,7 +162,11 @@ def get_roboflow_workflow_provider(
             api_url=active_api_url,
         )
     except Exception as e:
-        prefix = "Failed to initialize request-scoped RoboflowWorkflowProvider: " if api_key else "Failed to initialize RoboflowWorkflowProvider: "
+        prefix = (
+            "Failed to initialize request-scoped RoboflowWorkflowProvider: "
+            if api_key
+            else "Failed to initialize RoboflowWorkflowProvider: "
+        )
         raise HTTPException(
             status_code=400,
             detail=f"{prefix}{str(e)}",

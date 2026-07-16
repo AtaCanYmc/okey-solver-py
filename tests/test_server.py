@@ -156,7 +156,9 @@ def test_solve_vision_roboflow_workflow_endpoint():
 
     from okey_server.dependencies import get_roboflow_workflow_provider
 
-    app.dependency_overrides[get_roboflow_workflow_provider] = lambda: MockWorkflowPipeline()
+    app.dependency_overrides[get_roboflow_workflow_provider] = lambda: (
+        MockWorkflowPipeline()
+    )
     try:
         import io
 
@@ -288,7 +290,9 @@ def test_extract_vision_roboflow_workflow_endpoint():
 
     from okey_server.dependencies import get_roboflow_workflow_provider
 
-    app.dependency_overrides[get_roboflow_workflow_provider] = lambda: MockWorkflowPipeline()
+    app.dependency_overrides[get_roboflow_workflow_provider] = lambda: (
+        MockWorkflowPipeline()
+    )
     try:
         import io
 
@@ -370,6 +374,7 @@ def test_solve_vision_roboflow_workflow_request_params():
 
 def test_file_validation_size_limit():
     import io
+
     # Create large dummy content (11MB)
     large_data = io.BytesIO(b"0" * (11 * 1024 * 1024))
     file_data = {"file": ("large.jpg", large_data, "image/jpeg")}
@@ -381,6 +386,7 @@ def test_file_validation_size_limit():
 
 def test_file_validation_mime_type():
     import io
+
     invalid_data = io.BytesIO(b"plain text file content")
     file_data = {"file": ("text.txt", invalid_data, "text/plain")}
 
@@ -403,4 +409,3 @@ def test_vision_provider_registry_caching():
         mock_yolo.assert_called_once_with(model_path="weights.pt")
         assert provider1 == "mock_instance_1"
         assert provider2 == "mock_instance_1"
-

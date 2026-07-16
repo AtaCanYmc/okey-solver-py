@@ -41,6 +41,7 @@ class VisionSolverEngine:
     """
     Composition wrapper offering a clean, type-safe solver-orchestration layout.
     """
+
     def __init__(
         self,
         pipeline: VisionPipeline,
