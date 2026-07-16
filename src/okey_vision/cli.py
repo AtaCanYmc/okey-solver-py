@@ -44,7 +44,10 @@ def main():
 
     api_key = args.api_key or os.getenv("ROBOFLOW_API_KEY")
     if not api_key:
-        print("Error: Roboflow API key is required. Pass --api-key or set ROBOFLOW_API_KEY env var.", file=sys.stderr)
+        print(
+            "Error: Roboflow API key is required. Pass --api-key or set ROBOFLOW_API_KEY env var.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     print("=== Okey Vision CLI ===")

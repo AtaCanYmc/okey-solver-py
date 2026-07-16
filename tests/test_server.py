@@ -81,9 +81,7 @@ def test_solve_vision_roboflow_workflow_endpoint():
         import io
 
         file_data = {"file": ("test.jpg", io.BytesIO(b"dummydata"), "image/jpeg")}
-        response = client.post(
-            "/api/v1/vision/solve", files=file_data
-        )
+        response = client.post("/api/v1/vision/solve", files=file_data)
         assert response.status_code == 200
         data = response.json()
         assert len(data["tiles"]) == 1
@@ -126,9 +124,7 @@ def test_extract_vision_roboflow_workflow_endpoint():
         import io
 
         file_data = {"file": ("test.jpg", io.BytesIO(b"dummydata"), "image/jpeg")}
-        response = client.post(
-            "/api/v1/vision/extract", files=file_data
-        )
+        response = client.post("/api/v1/vision/extract", files=file_data)
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data["tiles"], list)
@@ -154,9 +150,7 @@ def test_solve_vision_roboflow_workflow_request_params():
         "workflow_id": "mock_workflow_id",
         "api_url": "https://detect.roboflow.com",
     }
-    response = client.post(
-        "/api/v1/vision/solve", files=file_data, data=form_data
-    )
+    response = client.post("/api/v1/vision/solve", files=file_data, data=form_data)
     # Reaches run_workflow and fails to connect to mock_api_key (500)
     assert response.status_code == 500
     assert "Error querying Roboflow Workflow API" in response.json()["detail"]
@@ -191,7 +185,9 @@ def test_vision_provider_registry_caching():
 
     registry = VisionProviderRegistry()
 
-    with patch("okey_vision.providers.roboflow_workflow.RoboflowWorkflowProvider") as mock_wf:
+    with patch(
+        "okey_vision.providers.roboflow_workflow.RoboflowWorkflowProvider"
+    ) as mock_wf:
         mock_wf.return_value = "mock_instance_wf"
         provider1 = registry.get_roboflow_workflow_provider(
             api_key="key",

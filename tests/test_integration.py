@@ -50,7 +50,9 @@ def test_integration_solve_image_roboflow_workflow():
                 async def classify_async(self, frame, detections):
                     return [Tile(id="red-13", color=TileColor.RED, value=13)]
 
-            app.dependency_overrides[get_roboflow_workflow_provider] = lambda: MockPipeline()
+            app.dependency_overrides[get_roboflow_workflow_provider] = lambda: (
+                MockPipeline()
+            )
 
         if not has_live_provider:
             apply_mock_pipeline()
@@ -60,9 +62,7 @@ def test_integration_solve_image_roboflow_workflow():
                 files = {
                     "file": ("okey-solver-test-image.jpeg", img_file, "image/jpeg")
                 }
-                response = client.post(
-                    "/api/v1/vision/solve", files=files
-                )
+                response = client.post("/api/v1/vision/solve", files=files)
 
             if response.status_code in (400, 500):
                 print(
@@ -73,9 +73,7 @@ def test_integration_solve_image_roboflow_workflow():
                     files = {
                         "file": ("okey-solver-test-image.jpeg", img_file, "image/jpeg")
                     }
-                    response = client.post(
-                        "/api/v1/vision/solve", files=files
-                    )
+                    response = client.post("/api/v1/vision/solve", files=files)
 
             assert response.status_code == 200
             data = response.json()

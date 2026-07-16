@@ -81,7 +81,11 @@ def get_roboflow_workflow_provider(
             api_url=active_api_url,
         )
     except Exception as e:
-        prefix = "Failed to initialize request-scoped RoboflowWorkflowProvider: " if api_key else "Failed to initialize RoboflowWorkflowProvider: "
+        prefix = (
+            "Failed to initialize request-scoped RoboflowWorkflowProvider: "
+            if api_key
+            else "Failed to initialize RoboflowWorkflowProvider: "
+        )
         raise HTTPException(
             status_code=400,
             detail=f"{prefix}{str(e)}",

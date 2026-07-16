@@ -39,7 +39,9 @@ async def run_vision_safe(coro) -> Any:
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         logger.exception("Unexpected server error in vision pipeline")
-        raise HTTPException(status_code=500, detail="An internal server error occurred.")
+        raise HTTPException(
+            status_code=500, detail="An internal server error occurred."
+        )
 
 
 @router.post("/solver/arrange", response_model=Arrangement)
@@ -56,12 +58,15 @@ def arrange_hand(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.exception("Unexpected server error in solver")
-        raise HTTPException(status_code=500, detail="An internal server error occurred.")
+        raise HTTPException(
+            status_code=500, detail="An internal server error occurred."
+        )
 
 
 # ==========================================
 # VISION SOLVE ENDPOINT (Vision + Solver)
 # ==========================================
+
 
 @router.post("/vision/solve", response_model=OrchestratorResult)
 async def solve_vision(
@@ -86,6 +91,7 @@ async def solve_vision(
 # ==========================================
 # VISION EXTRACT ENDPOINT (Vision Only)
 # ==========================================
+
 
 @router.post("/vision/extract", response_model=ExtractResult)
 async def extract_vision(

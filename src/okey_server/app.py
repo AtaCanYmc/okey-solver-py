@@ -34,7 +34,9 @@ async def lifespan(app: FastAPI):
                 f"Workflow: {settings.rf_workflow_id})"
             )
         except Exception as e:
-            logger.exception(f"Warning: Failed to pre-warm default Roboflow workflow provider: {e}")
+            logger.exception(
+                f"Warning: Failed to pre-warm default Roboflow workflow provider: {e}"
+            )
 
     yield
 

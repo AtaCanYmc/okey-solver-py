@@ -5,9 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class OkeyServerSettings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_prefix="OKEY_",
-        case_sensitive=False,
-        extra="ignore"
+        env_prefix="OKEY_", case_sensitive=False, extra="ignore"
     )
 
     rf_key: Optional[str] = None

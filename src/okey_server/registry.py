@@ -16,6 +16,7 @@ class VisionProviderRegistry:
         key = f"roboflow_wf:{api_key}:{workspace_name}:{workflow_id}:{api_url}"
         if key not in self._cache:
             from okey_vision.providers.roboflow_workflow import RoboflowWorkflowProvider
+
             kwargs = {}
             if api_url:
                 kwargs["api_url"] = api_url
@@ -23,6 +24,6 @@ class VisionProviderRegistry:
                 api_key=api_key,
                 workspace_name=workspace_name,
                 workflow_id=workflow_id,
-                **kwargs
+                **kwargs,
             )
         return self._cache[key]
