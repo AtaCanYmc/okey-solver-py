@@ -4536,4 +4536,4 @@ vision = ["httpx", "numpy", "opencv-python", "pillow", "requests", "torch", "tor
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "c3f5b3aff805d3d4380b8bb6244106213ec9dc4cfa18c6883731f1796c94e0da"
+content-hash = "6b9fb623185093a0e820863809cc5a09373286597f9b7bae40aed936b6a14eee"
