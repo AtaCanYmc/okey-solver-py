@@ -135,6 +135,45 @@ okey-serve --port 8000
 
 ---
 
+## 📊 Capability Matrix
+
+| Feature | Package | Mode | Capabilities |
+| :--- | :--- | :--- | :--- |
+| **State Resolution** | `okey_solver` | Sync | Stateless backtracking and greedy hand-arranging meld solvers. Supports circular run checks and Joker resolutions. |
+| **Layout Detection** | `okey_vision` | Async / Sync | Multi-stage Roboflow Workflows querying, OCR labeling, confidence filters, and custom label mapping. |
+| **E2E Orchestration** | `okey_orchestrator` | Async / Sync | Feeds images directly into `okey_vision` and pipes outcomes into `okey_solver` dynamically. |
+| **FastAPI Microservice** | `okey_server` | Async | API exposing `/vision/solve` and `/vision/extract` with size (10MB) & MIME checks, instance registry caching, and safe error handling. |
+
+---
+
+## 🗺 System Flow & Architecture
+
+```mermaid
+graph TD
+    Client[Client / Caller] -->|1. HTTP Upload| Server[okey_server: API App]
+    Server -->|2. validate_image_file| SizeCheck{MIME & 10MB Check}
+    SizeCheck -->|Valid Image Bytes| DI[Depends: get_roboflow_workflow_provider]
+    DI -->|3. Registry Cached Provider| Router[solve_vision Router]
+    
+    subgraph Vision Orchestration
+        Router -->|4. analyze_frame_async| Orch[okey_orchestrator: VisionSolverEngine]
+        Orch -->|5. detect_async| Providers[okey_vision: RoboflowWorkflowProvider]
+        Providers -->|6. run_workflow| CloudAPI((Roboflow Workflow API))
+        CloudAPI -->|7. Predictions JSON| Providers
+        Providers -->|8. parse_tile| Parser[FuzzyLabelParser]
+    end
+    
+    subgraph Mathematical Solver
+        Parser -->|9. find_best_arrangement| Solver[okey_solver: SolverEngine]
+        Solver -->|10. Meld Arrangements| Orch
+    end
+    
+    Orch -->|11. OrchestratorResult| Router
+    Router -->|12. JSON Response| Client
+```
+
+---
+
 ## 📖 Extended Documentation
 
 - 🏗 **[Architecture & Flow Reference](docs/ARCHITECTURE.md)** - Visual flow pipelines, observers, and providers.
