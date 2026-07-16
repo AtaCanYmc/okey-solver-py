@@ -1,9 +1,8 @@
 # okey_vision/providers/roboflow.py
-import os
 import cv2
 import numpy as np
 from typing import Dict, List, Optional, Union
-from inference_sdk import InferenceHTTPClient
+from roboflow import Roboflow
 from okey_vision.types import FrameInput, Detection, BoundingBox
 from okey_core.types import Tile, TileColor
 from okey_vision.errors import ProviderError
@@ -12,7 +11,7 @@ from okey_vision.providers.base import DEFAULT_COLOR_ALIASES, LabelParserStrateg
 
 class RoboflowProvider:
     """
-    Uses the official Roboflow Inference SDK client to detect tiles.
+    Uses the official Roboflow Python SDK to detect tiles.
     """
 
     def __init__(
@@ -41,14 +40,27 @@ class RoboflowProvider:
 
         self.model_version = str(model_version)
         self.color_aliases = {**DEFAULT_COLOR_ALIASES, **(label_map or {})}
-        self.api_url = api_url or os.getenv("ROBOFLOW_API_URL", "https://serverless.roboflow.com")
+        self.api_url = api_url
         self.parser = parser or FuzzyLabelParser()
+        self._model = None
 
-        # Connect using the InferenceHTTPClient
-        self.client = InferenceHTTPClient(
-            api_url=self.api_url,
-            api_key=self.api_key
-        )
+    def _get_model(self):
+        if self._model is None:
+            try:
+                # Initialize the Roboflow client and load workspace/project/version/model
+                rf = Roboflow(api_key=self.api_key)
+                # If custom api_url is provided, try setting it on roboflow config
+                if self.api_url:
+                    import roboflow.config as rf_config
+                    rf_config.API_URL = self.api_url
+                
+                project_client = rf.workspace(self.workspace).project(self.project)
+                self._model = project_client.version(int(self.model_version)).model
+            except Exception as e:
+                raise ProviderError(
+                    f"Roboflow API client initialization failed: {e}"
+                ) from e
+        return self._model
 
     def _prepare_image(self, frame: FrameInput) -> np.ndarray:
         if isinstance(frame.data, np.ndarray):
@@ -67,11 +79,10 @@ class RoboflowProvider:
     def detect(self, frame: FrameInput) -> List[Detection]:
         image = self._prepare_image(frame)
         
-        # Build model ID as {project}/{version} to satisfy Inference SDK validation format
-        model_endpoint = f"{self.project}/{self.model_version}"
-
         try:
-            res_data = self.client.infer(image, model_id=model_endpoint)
+            model = self._get_model()
+            # Predict using the loaded model
+            res_data = model.predict(image, confidence=40, overlap=30).json()
         except Exception as e:
             raise ProviderError(
                 f"Roboflow API connection failed: {e}"
@@ -120,3 +131,4 @@ class RoboflowProvider:
             self.parser.parse_tile(det, idx, self.color_aliases)
             for idx, det in enumerate(detections)
         ]
+
