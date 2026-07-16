@@ -72,9 +72,9 @@ def test_solve_vision_local_endpoint():
         async def classify_async(self, frame, detections):
             return [Tile(id="red-5", color=TileColor.RED, value=5)]
 
-    from okey_server.routers import get_vision_pipeline
+    from okey_server.dependencies import get_local_yolo_provider
 
-    app.dependency_overrides[get_vision_pipeline] = lambda: MockLocalPipeline()
+    app.dependency_overrides[get_local_yolo_provider] = lambda: MockLocalPipeline()
     try:
         import io
 
@@ -113,9 +113,9 @@ def test_solve_vision_roboflow_endpoint():
         async def classify_async(self, frame, detections):
             return [Tile(id="blue-8", color=TileColor.BLUE, value=8)]
 
-    from okey_server.routers import get_vision_pipeline
+    from okey_server.dependencies import get_roboflow_provider
 
-    app.dependency_overrides[get_vision_pipeline] = lambda: MockRoboflowPipeline()
+    app.dependency_overrides[get_roboflow_provider] = lambda: MockRoboflowPipeline()
     try:
         import io
 
@@ -154,9 +154,9 @@ def test_solve_vision_roboflow_workflow_endpoint():
         async def classify_async(self, frame, detections):
             return [Tile(id="black-11", color=TileColor.BLACK, value=11)]
 
-    from okey_server.routers import get_vision_pipeline
+    from okey_server.dependencies import get_roboflow_workflow_provider
 
-    app.dependency_overrides[get_vision_pipeline] = lambda: MockWorkflowPipeline()
+    app.dependency_overrides[get_roboflow_workflow_provider] = lambda: MockWorkflowPipeline()
     try:
         import io
 
@@ -202,9 +202,9 @@ def test_extract_vision_local_endpoint():
         async def classify_async(self, frame, detections):
             return [Tile(id="red-5", color=TileColor.RED, value=5)]
 
-    from okey_server.routers import get_vision_pipeline
+    from okey_server.dependencies import get_local_yolo_provider
 
-    app.dependency_overrides[get_vision_pipeline] = lambda: MockLocalPipeline()
+    app.dependency_overrides[get_local_yolo_provider] = lambda: MockLocalPipeline()
     try:
         import io
 
@@ -244,9 +244,9 @@ def test_extract_vision_roboflow_endpoint():
         async def classify_async(self, frame, detections):
             return [Tile(id="blue-8", color=TileColor.BLUE, value=8)]
 
-    from okey_server.routers import get_vision_pipeline
+    from okey_server.dependencies import get_roboflow_provider
 
-    app.dependency_overrides[get_vision_pipeline] = lambda: MockRoboflowPipeline()
+    app.dependency_overrides[get_roboflow_provider] = lambda: MockRoboflowPipeline()
     try:
         import io
 
@@ -286,9 +286,9 @@ def test_extract_vision_roboflow_workflow_endpoint():
         async def classify_async(self, frame, detections):
             return [Tile(id="black-11", color=TileColor.BLACK, value=11)]
 
-    from okey_server.routers import get_vision_pipeline
+    from okey_server.dependencies import get_roboflow_workflow_provider
 
-    app.dependency_overrides[get_vision_pipeline] = lambda: MockWorkflowPipeline()
+    app.dependency_overrides[get_roboflow_workflow_provider] = lambda: MockWorkflowPipeline()
     try:
         import io
 
@@ -366,3 +366,41 @@ def test_solve_vision_roboflow_workflow_request_params():
     # Reaches run_workflow and fails to connect to mock_api_key (500)
     assert response.status_code == 500
     assert "Error querying Roboflow Workflow API" in response.json()["detail"]
+
+
+def test_file_validation_size_limit():
+    import io
+    # Create large dummy content (11MB)
+    large_data = io.BytesIO(b"0" * (11 * 1024 * 1024))
+    file_data = {"file": ("large.jpg", large_data, "image/jpeg")}
+
+    response = client.post("/api/v1/vision/solve/local", files=file_data)
+    assert response.status_code == 413
+    assert "File too large" in response.json()["detail"]
+
+
+def test_file_validation_mime_type():
+    import io
+    invalid_data = io.BytesIO(b"plain text file content")
+    file_data = {"file": ("text.txt", invalid_data, "text/plain")}
+
+    response = client.post("/api/v1/vision/solve/local", files=file_data)
+    assert response.status_code == 400
+    assert "Invalid file type" in response.json()["detail"]
+
+
+def test_vision_provider_registry_caching():
+    from unittest.mock import patch
+    from okey_server.registry import VisionProviderRegistry
+
+    registry = VisionProviderRegistry()
+
+    with patch("okey_vision.providers.LocalYoloProvider") as mock_yolo:
+        mock_yolo.return_value = "mock_instance_1"
+        provider1 = registry.get_local_yolo_provider("weights.pt")
+        provider2 = registry.get_local_yolo_provider("weights.pt")
+
+        mock_yolo.assert_called_once_with(model_path="weights.pt")
+        assert provider1 == "mock_instance_1"
+        assert provider2 == "mock_instance_1"
+

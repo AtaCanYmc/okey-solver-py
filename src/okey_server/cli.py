@@ -1,7 +1,8 @@
 # okey_server/cli.py
 import argparse
 import sys
-from okey_server import state
+
+from okey_server.settings import OkeyServerSettings
 
 
 def main():
@@ -21,13 +22,13 @@ def main():
         "--rf-key", help="Roboflow API Key."
     )
     parser.add_argument(
-        "--rf-workspace", default="ata-dc7ry", help="Roboflow Workspace name."
+        "--rf-workspace", help="Roboflow Workspace name."
     )
     parser.add_argument(
-        "--rf-model-id", default="okey-rummikub", help="Roboflow Model ID."
+        "--rf-model-id", help="Roboflow Model ID."
     )
     parser.add_argument(
-        "--rf-model-version", type=int, default=1, help="Roboflow Model Version."
+        "--rf-model-version", type=int, help="Roboflow Model Version."
     )
     parser.add_argument(
         "--rf-api-url", help="Roboflow custom API URL."
@@ -35,16 +36,22 @@ def main():
 
     args = parser.parse_args()
 
-    # Pass all configurations directly to the state module instead of env variables
+    # Pass configuration arguments to Pydantic Settings initialization
+    settings_kwargs = {}
     if args.model:
-        state.model_path = args.model
+        settings_kwargs["model_path"] = args.model
     if args.rf_key:
-        state.rf_key = args.rf_key
-    state.rf_workspace = args.rf_workspace
-    state.rf_model_id = args.rf_model_id
-    state.rf_model_version = args.rf_model_version
+        settings_kwargs["rf_key"] = args.rf_key
+    if args.rf_workspace:
+        settings_kwargs["rf_workspace"] = args.rf_workspace
+    if args.rf_model_id:
+        settings_kwargs["rf_model_id"] = args.rf_model_id
+    if args.rf_model_version is not None:
+        settings_kwargs["rf_model_version"] = args.rf_model_version
     if args.rf_api_url:
-        state.rf_api_url = args.rf_api_url
+        settings_kwargs["rf_api_url"] = args.rf_api_url
+
+    settings = OkeyServerSettings(**settings_kwargs)
 
     try:
         import uvicorn
@@ -56,6 +63,7 @@ def main():
         sys.exit(1)
 
     from okey_server.app import app
+    app.state.settings = settings
 
     print(f"Starting Okey Server on http://{args.host}:{args.port}")
     uvicorn.run(app, host=args.host, port=args.port)
