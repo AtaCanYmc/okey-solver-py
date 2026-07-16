@@ -3568,6 +3568,19 @@ files = [
 cli = ["click (>=5.0)"]
 
 [[package]]
+name = "python-multipart"
+version = "0.0.32"
+description = "A streaming multipart parser for Python"
+optional = true
+python-versions = ">=3.10"
+groups = ["main"]
+markers = "extra == \"server\""
+files = [
+    {file = "python_multipart-0.0.32-py3-none-any.whl", hash = "sha256:ff6d3f776f16878c894e52e107296ffc890e913c611b1a4ec6c44e2821fe2e23"},
+    {file = "python_multipart-0.0.32.tar.gz", hash = "sha256:be54b7f3fa167bb83e4fcd936b887b708f4e57fe75911c02aebf53efaf8d938e"},
+]
+
+[[package]]
 name = "pyyaml"
 version = "6.0.3"
 description = "YAML parser and emitter for Python"
@@ -4582,10 +4595,10 @@ multidict = ">=4.0"
 propcache = ">=0.2.1"
 
 [extras]
-server = ["fastapi", "uvicorn"]
+server = ["fastapi", "python-multipart", "uvicorn"]
 vision = ["httpx", "inference-sdk", "numpy", "opencv-python", "pillow", "requests"]
 
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.13"
-content-hash = "b62549e1c6f0b377068331a7f582af21f1a416565d2f03d34dcdf4a5b45c433e"
+content-hash = "a0c652bce8175357488a11a75677f09aeaaa79e163c3f73ac1955ad3d735a468"
