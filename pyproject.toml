@@ -28,10 +28,11 @@ starlette = ">=1.3.1"
 uvicorn = { version = "^0.22.0", optional = true }
 pyTelegramBotAPI = { version = "^4.12", optional = true }
 inference-sdk = { version = "^1.3.5", optional = true }
+python-multipart = { version = ">=0.0.32", optional = true }
 
 [tool.poetry.extras]
 vision = ["numpy", "opencv-python", "pillow", "requests", "httpx", "inference-sdk"]
-server = ["fastapi", "uvicorn", "dotenv"]
+server = ["fastapi", "uvicorn", "dotenv", "python-multipart"]
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8,<10"
