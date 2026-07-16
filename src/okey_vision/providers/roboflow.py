@@ -1,7 +1,8 @@
-from typing import Dict, List, Optional, Union
+# okey_vision/providers/roboflow.py
+import cv2
 import numpy as np
-import requests
-import httpx
+from typing import Dict, List, Optional, Union
+from roboflow import Roboflow
 from okey_vision.types import FrameInput, Detection, BoundingBox
 from okey_core.types import Tile, TileColor
 from okey_vision.errors import ProviderError
@@ -10,72 +11,82 @@ from okey_vision.providers.base import DEFAULT_COLOR_ALIASES, LabelParserStrateg
 
 class RoboflowProvider:
     """
-    Uses the Roboflow API to detect tiles.
+    Uses the official Roboflow Python SDK to detect tiles.
     """
 
     def __init__(
-        self,
-        api_key: str,
-        model_id: str = "rummikub-5bldr",
-        model_version: Union[int, str] = 1,
-        label_map: Optional[Dict[str, TileColor]] = None,
-        parser: Optional[LabelParserStrategy] = None,
+            self,
+            api_key: str,
+            model_id: str = "rummikub-p8akb-vr0ef-3-yolov8n-t1",
+            workspace_name="ata-dc7ry",
+            model_version: Union[int, str] = 1,
+            label_map: Optional[Dict[str, TileColor]] = None,
+            parser: Optional[LabelParserStrategy] = None,
+            api_url: Optional[str] = None
     ):
         self.api_key = api_key
-        self.model_id = model_id
+        # Split workspace name if embedded in model_id (e.g. "workspace/project")
+        if "/" in model_id:
+            parts = model_id.split("/")
+            if len(parts) == 2:
+                self.workspace = parts[0]
+                self.project = parts[1]
+            else:
+                self.workspace = workspace_name
+                self.project = model_id
+        else:
+            self.workspace = workspace_name
+            self.project = model_id
+
         self.model_version = str(model_version)
         self.color_aliases = {**DEFAULT_COLOR_ALIASES, **(label_map or {})}
-        self.base_url = "https://detect.roboflow.com"
+        self.api_url = api_url
         self.parser = parser or FuzzyLabelParser()
+        self._model = None
 
-    def _prepare_image_bytes(self, frame: FrameInput) -> bytes:
-        import cv2
+    def _get_model(self):
+        if self._model is None:
+            try:
+                # Initialize the Roboflow client and load workspace/project/version/model
+                rf = Roboflow(api_key=self.api_key)
+                # If custom api_url is provided, try setting it on roboflow config
+                if self.api_url:
+                    import roboflow.config as rf_config
+                    rf_config.API_URL = self.api_url
+                
+                project_client = rf.workspace(self.workspace).project(self.project)
+                self._model = project_client.version(int(self.model_version)).model
+            except Exception as e:
+                raise ProviderError(
+                    f"Roboflow API client initialization failed: {e}"
+                ) from e
+        return self._model
 
+    def _prepare_image(self, frame: FrameInput) -> np.ndarray:
         if isinstance(frame.data, np.ndarray):
-            _, buffer = cv2.imencode(".jpg", frame.data)
-            return buffer.tobytes()
+            return frame.data
         elif isinstance(frame.data, (bytes, bytearray)):
-            return bytes(frame.data)
+            nparr = np.frombuffer(frame.data, np.uint8)
+            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            if img is None:
+                raise ValueError("Could not decode image bytes into numpy array.")
+            return img
         else:
             raise ValueError(
-                "RoboflowProvider requires raw image bytes or numpy array."
+                "RoboflowProvider requires numpy array or image bytes."
             )
-
-    def preprocess(self, frame: FrameInput) -> FrameInput:
-        return frame
 
     def detect(self, frame: FrameInput) -> List[Detection]:
-        import base64
-
-        img_bytes = self._prepare_image_bytes(frame)
-        img_b64 = base64.b64encode(img_bytes).decode("utf-8")
-
-        url = f"{self.base_url}/{self.model_id}/{self.model_version}"
-        params = {"api_key": self.api_key}
-
+        image = self._prepare_image(frame)
+        
         try:
-            response = requests.post(
-                url,
-                params=params,
-                data=img_b64,
-                headers={"Content-Type": "application/x-www-form-urlencoded"},
-                timeout=10.0,
-            )
-            response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            status_code = getattr(getattr(e, "response", None), "status_code", None)
-            response_text = getattr(getattr(e, "response", None), "text", "")
+            model = self._get_model()
+            # Predict using the loaded model
+            res_data = model.predict(image, confidence=40, overlap=30).json()
+            self.last_raw_response = res_data
+        except Exception as e:
             raise ProviderError(
-                f"Roboflow API connection failed: {e}",
-                payload={"url": url, "status_code": status_code, "response_text": response_text}
-            ) from e
-
-        try:
-            res_data = response.json()
-        except ValueError as e:
-            raise ProviderError(
-                "Failed to parse Roboflow API response JSON.",
-                payload={"response_text": response.text}
+                f"Roboflow API connection failed: {e}"
             ) from e
 
         predictions = res_data.get("predictions", [])
@@ -105,68 +116,20 @@ class RoboflowProvider:
         return detections
 
     async def detect_async(self, frame: FrameInput) -> List[Detection]:
-        import base64
-
-        img_bytes = self._prepare_image_bytes(frame)
-        img_b64 = base64.b64encode(img_bytes).decode("utf-8")
-
-        url = f"{self.base_url}/{self.model_id}/{self.model_version}"
-        params = {"api_key": self.api_key}
-
+        import asyncio
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    url,
-                    params=params,
-                    content=img_b64,
-                    headers={"Content-Type": "application/x-www-form-urlencoded"},
-                    timeout=10.0,
-                )
-                response.raise_for_status()
-        except httpx.HTTPError as e:
-            status_code = getattr(getattr(e, "response", None), "status_code", None)
-            response_text = getattr(getattr(e, "response", None), "text", "")
+            return await asyncio.to_thread(self.detect, frame)
+        except Exception as e:
             raise ProviderError(
-                f"Roboflow API async connection failed: {e}",
-                payload={"url": url, "status_code": status_code, "response_text": response_text}
+                f"Roboflow API async connection failed: {e}"
             ) from e
 
-        try:
-            res_data = response.json()
-        except ValueError as e:
-            raise ProviderError(
-                "Failed to parse Roboflow API response JSON.",
-                payload={"response_text": response.text}
-            ) from e
-
-        predictions = res_data.get("predictions", [])
-        detections: List[Detection] = []
-
-        for idx, pred in enumerate(predictions):
-            cx = pred["x"]
-            cy = pred["y"]
-            width = pred["width"]
-            height = pred["height"]
-            conf = pred["confidence"]
-            label = pred["class"]
-
-            left = cx - width / 2
-            top = cy - height / 2
-
-            detections.append(
-                Detection(
-                    id=pred.get("prediction_id", f"rf-{idx}"),
-                    bounds=BoundingBox(x=left, y=top, width=width, height=height),
-                    confidence=conf,
-                    label=label,
-                    metadata=pred,
-                )
-            )
-
-        return detections
+    def preprocess(self, frame: FrameInput) -> FrameInput:
+        return frame
 
     def classify(self, frame: FrameInput, detections: List[Detection]) -> List[Tile]:
         return [
             self.parser.parse_tile(det, idx, self.color_aliases)
             for idx, det in enumerate(detections)
         ]
+

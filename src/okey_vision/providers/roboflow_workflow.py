@@ -15,13 +15,13 @@ class RoboflowWorkflowProvider:
     """
 
     def __init__(
-        self,
-        api_key: str,
-        workspace_name: str = "ata-dc7ry",
-        workflow_id: str = "rummikub-vrummikub-p8akb-vr0ef-3-yolov8n-t1-logic",
-        api_url: str = "https://serverless.roboflow.com",
-        label_map: Optional[Dict[str, TileColor]] = None,
-        parser: Optional[LabelParserStrategy] = None,
+            self,
+            api_key: str,
+            workspace_name: str = "ata-dc7ry",
+            workflow_id: str = "okey-and-rummikub-vrummikub-p8akb-vr0ef-3-yolov8n-t1-logic",
+            api_url: str = "https://serverless.roboflow.com",
+            label_map: Optional[Dict[str, TileColor]] = None,
+            parser: Optional[LabelParserStrategy] = None,
     ):
         from inference_sdk import InferenceHTTPClient
 
@@ -55,15 +55,47 @@ class RoboflowWorkflowProvider:
             result = self.client.run_workflow(
                 workspace_name=self.workspace_name,
                 workflow_id=self.workflow_id,
-                images={"image": image_input},
+                images={"images": image_input},
                 use_cache=True,
             )
+            self.last_raw_response = result
         except Exception as e:
             logger.error(f"Error querying Roboflow Workflow API: {e}", exc_info=True)
             raise ProviderError(
                 f"Error querying Roboflow Workflow API: {e}",
                 payload={"workspace_name": self.workspace_name, "workflow_id": self.workflow_id}
             ) from e
+
+        def find_predictions_list(data) -> Optional[List[dict]]:
+            if isinstance(data, list):
+                if len(data) > 0 and isinstance(data[0], dict):
+                    first = data[0]
+                    # Bounding box structures typically have at least x, y, width, height
+                    if "x" in first and "y" in first and "width" in first and "height" in first:
+                        return data
+                for item in data:
+                    found = find_predictions_list(item)
+                    if found is not None:
+                        return found
+            elif isinstance(data, dict):
+                # Check preferred keys first
+                for key in ["predictions", "output", "detections", "predictions_list"]:
+                    if key in data:
+                        val = data[key]
+                        if isinstance(val, list):
+                            found = find_predictions_list(val)
+                            if found is not None:
+                                return found
+                        elif isinstance(val, dict):
+                            found = find_predictions_list(val)
+                            if found is not None:
+                                return found
+                # Recurse other keys
+                for val in data.values():
+                    found = find_predictions_list(val)
+                    if found is not None:
+                        return found
+            return None
 
         if isinstance(result, list):
             if not result:
@@ -72,18 +104,7 @@ class RoboflowWorkflowProvider:
 
         predictions = []
         if isinstance(result, dict):
-            # Attempt to extract predictions from common workflow output block names
-            for key in ["predictions", "output", "detections"]:
-                if key in result and isinstance(result[key], list):
-                    predictions = result[key]
-                    break
-            if not predictions:
-                # Fallback: check any list of dicts with bounding box properties
-                for val in result.values():
-                    if isinstance(val, list) and len(val) > 0 and isinstance(val[0], dict):
-                        if "x" in val[0] and "y" in val[0] and "width" in val[0] and "confidence" in val[0]:
-                            predictions = val
-                            break
+            predictions = find_predictions_list(result) or []
             if not predictions and result:
                 raise ProviderError(
                     "Unexpected format: could not extract predictions list from workflow result dictionary.",

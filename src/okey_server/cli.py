@@ -1,7 +1,7 @@
 # okey_server/cli.py
 import argparse
-import os
 import sys
+from okey_server import state
 
 
 def main():
@@ -17,11 +17,34 @@ def main():
     parser.add_argument(
         "--model", help="Path to the local YOLO model (.pt) file."
     )
+    parser.add_argument(
+        "--rf-key", help="Roboflow API Key."
+    )
+    parser.add_argument(
+        "--rf-workspace", default="ata-dc7ry", help="Roboflow Workspace name."
+    )
+    parser.add_argument(
+        "--rf-model-id", default="okey-rummikub", help="Roboflow Model ID."
+    )
+    parser.add_argument(
+        "--rf-model-version", type=int, default=1, help="Roboflow Model Version."
+    )
+    parser.add_argument(
+        "--rf-api-url", help="Roboflow custom API URL."
+    )
 
     args = parser.parse_args()
 
+    # Pass all configurations directly to the state module instead of env variables
     if args.model:
-        os.environ["YOLO_MODEL_PATH"] = args.model
+        state.model_path = args.model
+    if args.rf_key:
+        state.rf_key = args.rf_key
+    state.rf_workspace = args.rf_workspace
+    state.rf_model_id = args.rf_model_id
+    state.rf_model_version = args.rf_model_version
+    if args.rf_api_url:
+        state.rf_api_url = args.rf_api_url
 
     try:
         import uvicorn
@@ -32,8 +55,10 @@ def main():
         )
         sys.exit(1)
 
+    from okey_server.app import app
+
     print(f"Starting Okey Server on http://{args.host}:{args.port}")
-    uvicorn.run("okey_server.app:app", host=args.host, port=args.port)
+    uvicorn.run(app, host=args.host, port=args.port)
 
 
 if __name__ == "__main__":

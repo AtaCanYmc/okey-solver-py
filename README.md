@@ -14,7 +14,7 @@ The codebase is split into fully decoupled, high-performance packages under the 
 
 1. **`okey_core`**: Holds shared domain types (`Tile`, `Meld`, `Arrangement`, `OrchestratorResult`) and exceptions. Completely independent.
 2. **`okey_solver`**: Stateless mathematical engines to calculate optimal run/group melds and identical pairs. Uses slot-based DTO mapping (`LightTile`, `LightMeld`) to bypass Pydantic model loop overhead.
-3. **`okey_vision`**: Translates frames (numpy, PIL, bytes, base64) into tile predictions. Supports local YOLO or cloud Roboflow models. Decoupled from solver logic via an injectable `LabelParserStrategy`.
+3. **`okey_vision`**: Translates frames (numpy, PIL, bytes, base64) into tile predictions. Supports local YOLO or cloud Roboflow models (including the pretrained [Okey-Rummikub Model on Roboflow Universe](https://universe.roboflow.com/ata-dc7ry/okey-rummikub) trained on the [Okey-Data Kaggle Dataset](https://www.kaggle.com/datasets/atacanyaymac/okey-data)). Decoupled from solver logic via an injectable `LabelParserStrategy`.
 4. **`okey_orchestrator`**: Orchestrates pipelines by feeding vision outputs into the mathematical solver. Supports passing custom `SolverEngine` instances or a `strategy` string directly during setup.
 5. **`okey_server`**: A microservice framework delivering endpoints for vision processing and hand arrangement.
 
