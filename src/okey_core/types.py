@@ -71,7 +71,14 @@ class RoboflowWorkflowResult(BaseModel):
     predictions: List[RoboflowWorkflowPrediction]
 
 
+class RoboflowWorkflowLabelVisualization(BaseModel):
+    type: str
+    value: str
+
+
 class RoboflowWorkflowContainer(BaseModel):
-    predictions: RoboflowWorkflowResult
+    model_output: RoboflowWorkflowResult
+    label_visualization_output: Optional[RoboflowWorkflowLabelVisualization] = None
+
 
 

@@ -10,7 +10,8 @@ from okey_core.types import (
     RoboflowWorkflowImageSize,
     RoboflowWorkflowPrediction,
     RoboflowWorkflowResult,
-    RoboflowWorkflowContainer
+    RoboflowWorkflowContainer,
+    RoboflowWorkflowLabelVisualization
 )
 from okey_core.errors import OkeyCoreError, InvalidTileError
 
@@ -26,6 +27,7 @@ __all__ = [
     "RoboflowWorkflowPrediction",
     "RoboflowWorkflowResult",
     "RoboflowWorkflowContainer",
+    "RoboflowWorkflowLabelVisualization",
     "OkeyCoreError",
     "InvalidTileError",
 ]
