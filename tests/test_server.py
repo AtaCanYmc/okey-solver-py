@@ -294,3 +294,47 @@ def test_solve_vision_local_with_request_params():
     response = client.post("/api/v1/vision/solve/local", files=file_data, data=form_data)
     assert response.status_code == 400
     assert "Failed to initialize request-scoped" in response.json()["detail"]
+
+
+def test_solve_vision_roboflow_request_params():
+    from PIL import Image
+    import io
+    img = Image.new('RGB', (10, 10), color='red')
+    img_bytes = io.BytesIO()
+    img.save(img_bytes, format='JPEG')
+    img_bytes.seek(0)
+    
+    file_data = {"file": ("test.jpg", img_bytes, "image/jpeg")}
+    form_data = {
+        "api_key": "mock_api_key",
+        "workspace": "mock_workspace",
+        "model_id": "mock_model_id",
+        "model_version": 1
+    }
+    response = client.post("/api/v1/vision/solve/roboflow", files=file_data, data=form_data)
+    # Lazy load succeeds in constructor, but detect fails due to invalid api_key connection error (500)
+    assert response.status_code == 500
+    assert "Roboflow API connection failed" in response.json()["detail"] or "Roboflow API async connection failed" in response.json()["detail"]
+
+
+def test_solve_vision_roboflow_workflow_request_params():
+    from PIL import Image
+    import io
+    img = Image.new('RGB', (10, 10), color='red')
+    img_bytes = io.BytesIO()
+    img.save(img_bytes, format='JPEG')
+    img_bytes.seek(0)
+    
+    file_data = {"file": ("test.jpg", img_bytes, "image/jpeg")}
+    form_data = {
+        "api_key": "mock_api_key",
+        "workspace": "mock_workspace",
+        "workflow_id": "mock_workflow_id",
+        "api_url": "https://detect.roboflow.com"
+    }
+    response = client.post("/api/v1/vision/solve/roboflow/workflow", files=file_data, data=form_data)
+    # Reaches run_workflow and fails to connect to mock_api_key (500)
+    assert response.status_code == 500
+    assert "Error querying Roboflow Workflow API" in response.json()["detail"]
+
+
