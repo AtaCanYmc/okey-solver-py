@@ -18,7 +18,7 @@ class RoboflowWorkflowProvider:
         self,
         api_key: str,
         workspace_name: str = "ata-dc7ry",
-        workflow_id: str = "rummikub-vrummikub-p8akb-vr0ef-3-yolov8n-t1-logic",
+        workflow_id: str = "okey-and-rummikub-vrummikub-p8akb-vr0ef-3-yolov8n-t1-logic",
         api_url: str = "https://serverless.roboflow.com",
         label_map: Optional[Dict[str, TileColor]] = None,
         parser: Optional[LabelParserStrategy] = None,

@@ -156,6 +156,7 @@ async def solve_vision_roboflow_workflow(
         api_key: Optional[str] = Form(None),
         workspace: Optional[str] = Form(None),
         workflow_id: Optional[str] = Form(None),
+        api_url: Optional[str] = Form(None),
         pipeline: Optional[Any] = Depends(get_vision_pipeline),
 ):
     """
@@ -167,12 +168,16 @@ async def solve_vision_roboflow_workflow(
 
     if api_key:
         ws = workspace or "ata-dc7ry"
-        wf_id = workflow_id or "rummikub-vrummikub-p8akb-vr0ef-3-yolov8n-t1-logic"
+        wf_id = workflow_id or "okey-and-rummikub-vrummikub-p8akb-vr0ef-3-yolov8n-t1-logic"
         try:
+            kwargs = {}
+            if api_url:
+                kwargs["api_url"] = api_url
             active_pipeline = RoboflowWorkflowProvider(
                 api_key=api_key,
                 workspace_name=ws,
-                workflow_id=wf_id
+                workflow_id=wf_id,
+                **kwargs
             )
         except Exception as e:
             raise HTTPException(
@@ -309,6 +314,7 @@ async def extract_vision_roboflow_workflow(
         api_key: Optional[str] = Form(None),
         workspace: Optional[str] = Form(None),
         workflow_id: Optional[str] = Form(None),
+        api_url: Optional[str] = Form(None),
         pipeline: Optional[Any] = Depends(get_vision_pipeline),
 ):
     """
@@ -320,12 +326,16 @@ async def extract_vision_roboflow_workflow(
 
     if api_key:
         ws = workspace or "ata-dc7ry"
-        wf_id = workflow_id or "rummikub-vrummikub-p8akb-vr0ef-3-yolov8n-t1-logic"
+        wf_id = workflow_id or "okey-and-rummikub-vrummikub-p8akb-vr0ef-3-yolov8n-t1-logic"
         try:
+            kwargs = {}
+            if api_url:
+                kwargs["api_url"] = api_url
             active_pipeline = RoboflowWorkflowProvider(
                 api_key=api_key,
                 workspace_name=ws,
-                workflow_id=wf_id
+                workflow_id=wf_id,
+                **kwargs
             )
         except Exception as e:
             raise HTTPException(
