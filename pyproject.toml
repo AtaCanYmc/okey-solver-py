@@ -32,6 +32,7 @@ structlog = { version = "^24.0.0", optional = true }
 opentelemetry-api = { version = "^1.24.0", optional = true }
 opentelemetry-sdk = { version = "^1.24.0", optional = true }
 opentelemetry-instrumentation-fastapi = { version = "^0.45b0", optional = true }
+setuptools = { version = ">=60.0.0", optional = true }
 
 [tool.poetry.extras]
 vision = ["numpy", "opencv-python", "pillow", "requests", "httpx", "inference-sdk"]
@@ -44,7 +45,8 @@ server = [
     "structlog",
     "opentelemetry-api",
     "opentelemetry-sdk",
-    "opentelemetry-instrumentation-fastapi"
+    "opentelemetry-instrumentation-fastapi",
+    "setuptools"
 ]
 
 [tool.poetry.group.dev.dependencies]
