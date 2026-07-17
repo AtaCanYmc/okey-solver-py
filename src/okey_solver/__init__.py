@@ -9,6 +9,9 @@ from okey_solver.solver import (
 from okey_solver.meld_generator import MeldGenerator
 from okey_solver.backtracking_solver import BacktrackingSolver
 from okey_solver.pair_finder import PairFinder
+from okey_solver.ilp_solver import IlpSolver
+from okey_solver.hybrid_solver import HybridSolver
+from okey_solver.evaluator import DiscardEvaluator
 from okey_solver.errors import (
     OkeySolverError,
     InvalidTileError,
@@ -28,6 +31,9 @@ __all__ = [
     "MeldGenerator",
     "BacktrackingSolver",
     "PairFinder",
+    "IlpSolver",
+    "HybridSolver",
+    "DiscardEvaluator",
     "OkeySolverError",
     "InvalidTileError",
     "InvalidArrangementError",

@@ -6,6 +6,8 @@ from okey_solver.meld_generator import MeldGenerator
 from okey_solver.backtracking_solver import BacktrackingSolver
 from okey_solver.greedy_solver import GreedySolver
 from okey_solver.pair_finder import PairFinder
+from okey_solver.ilp_solver import IlpSolver
+from okey_solver.hybrid_solver import HybridSolver
 
 
 class SolverEngine:
@@ -18,9 +20,12 @@ class SolverEngine:
         self.meld_generator = MeldGenerator(val)
         self.strategy = strategy.lower()
 
-        self.solver: Union[BacktrackingSolver, GreedySolver]
         if self.strategy == "greedy":
             self.solver = GreedySolver()
+        elif self.strategy == "ilp":
+            self.solver = IlpSolver()
+        elif self.strategy == "hybrid":
+            self.solver = HybridSolver()
         else:
             self.solver = BacktrackingSolver()
 
