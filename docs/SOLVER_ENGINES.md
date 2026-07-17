@@ -158,3 +158,45 @@ This formulation is solved using standard solver libraries like `pulp` (invoking
 Arranging tiles is only half of the challenge when building an autonomous Okey Bot. While a solver arranges the hand, a **Probabilistic Discard Evaluator** is required to decide *which* unmelded tile to discard at the end of a turn. 
 
 A Monte Carlo Tree Search (MCTS) or expected-value probability engine evaluates the remaining unmelded tiles in the arrangement. By counting the outstanding tiles in the deck (the 106-tile pool minus the cards in the player's hand and known discards), the engine calculates the probability of drawing the matching partner tiles required to complete a run or group in subsequent turns. The tile with the lowest expected probability of forming a future meld is prioritized for discard.
+
+---
+
+## 7. Example Usage & Engine Selection
+
+Below is a Python code example demonstrating how to initialize the standard Okey solver using different engines and run the discard evaluator on leftover tiles:
+
+```python
+from okey_core.types import Tile, TileColor, OkeyMeta
+from okey_solver import create_standard_okey_solver, DiscardEvaluator
+
+# 1. Initialize different solver strategies
+# Options: "backtracking", "greedy", "ilp", or "hybrid"
+solver_backtracking = create_standard_okey_solver(strategy="backtracking")
+solver_greedy = create_standard_okey_solver(strategy="greedy")
+solver_ilp = create_standard_okey_solver(strategy="ilp")
+solver_hybrid = create_standard_okey_solver(strategy="hybrid")  # Time-bounded (50ms)
+
+# 2. Define a hand of tiles to solve
+hand = [
+    Tile(id="tile1", color=TileColor.RED, value=5),
+    Tile(id="tile2", color=TileColor.RED, value=6),
+    Tile(id="tile3", color=TileColor.RED, value=7),
+    Tile(id="tile4", color=TileColor.BLACK, value=12),
+]
+
+# 3. Solve using the preferred engine (e.g. ILP for fast exact solving)
+arrangement = solver_ilp.find_best_arrangement(hand)
+
+print(f"Optimal Score: {arrangement.totalScore}")
+for meld in arrangement.melds:
+    print(f"  Meld ({meld.type.value}): {[f'{t.color.value}-{t.value}' for t in meld.tiles]}")
+
+# 4. Evaluate remaining tiles for discard recommendations
+evaluator = DiscardEvaluator()
+discards = evaluator.evaluate_discards(hand, arrangement)
+
+print("\nDiscard Recommendations (lowest connection strength first):")
+for item in discards:
+    t = item["tile"]
+    print(f"  Discard candidate: {t.color.value}-{t.value} (Score: {item['score']}) - {item['explanation']}")
+```
