@@ -2887,6 +2887,18 @@ files = [
 ]
 
 [[package]]
+name = "pulp"
+version = "2.9.0"
+description = "PuLP is an LP modeler written in python. PuLP can generate MPS or LP files and call GLPK, COIN CLP/CBC, CPLEX, and GUROBI to solve linear problems."
+optional = false
+python-versions = ">=3.7"
+groups = ["main"]
+files = [
+    {file = "PuLP-2.9.0-py3-none-any.whl", hash = "sha256:ad6a9b566d8458f4d05f4bfe2cea59e32885dd1da6929a361be579222107987c"},
+    {file = "pulp-2.9.0.tar.gz", hash = "sha256:2e30e6c0ef2c0edac185220e3e53faca62eb786a9bd68465208f05bc63e850f3"},
+]
+
+[[package]]
 name = "py-cpuinfo"
 version = "9.0.0"
 description = "Get CPU info with pure Python"
@@ -4246,4 +4258,4 @@ vision = ["httpx", "inference-sdk", "numpy", "opencv-python", "pillow", "request
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.13"
-content-hash = "9dbe5fb7f5d7b52e81feba1374e15c0b3ee1ceaea221abf6ede2330ab2eeb348"
+content-hash = "f9fe1fdcbe2d864868dc35c0ca52832da4c28833d784231ef774fd6a27e1587f"

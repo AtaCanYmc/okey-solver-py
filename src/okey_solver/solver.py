@@ -1,11 +1,13 @@
 # okey_solver/solver.py
-from typing import List, Optional, Dict, Any, Union
+from typing import List, Optional, Dict, Any
 from okey_core.types import Tile, Arrangement, OkeyMeta, TileColor
 from okey_solver.rules import OkeyRuleValidator
 from okey_solver.meld_generator import MeldGenerator
 from okey_solver.backtracking_solver import BacktrackingSolver
 from okey_solver.greedy_solver import GreedySolver
 from okey_solver.pair_finder import PairFinder
+from okey_solver.ilp_solver import IlpSolver
+from okey_solver.hybrid_solver import HybridSolver
 
 
 class SolverEngine:
@@ -17,10 +19,15 @@ class SolverEngine:
         val = validator or OkeyRuleValidator()
         self.meld_generator = MeldGenerator(val)
         self.strategy = strategy.lower()
+        from typing import Union
+        self.solver: Union[BacktrackingSolver, GreedySolver, IlpSolver, HybridSolver]
 
-        self.solver: Union[BacktrackingSolver, GreedySolver]
         if self.strategy == "greedy":
             self.solver = GreedySolver()
+        elif self.strategy == "ilp":
+            self.solver = IlpSolver()
+        elif self.strategy == "hybrid":
+            self.solver = HybridSolver()
         else:
             self.solver = BacktrackingSolver()
 

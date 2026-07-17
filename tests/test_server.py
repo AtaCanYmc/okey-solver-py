@@ -204,6 +204,7 @@ def test_vision_provider_registry_caching():
             api_key="key",
             workspace_name="ws",
             workflow_id="wf",
+            api_url="https://serverless.roboflow.com",
         )
         assert provider1 == "mock_instance_wf"
         assert provider2 == "mock_instance_wf"

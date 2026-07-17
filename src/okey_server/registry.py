@@ -17,13 +17,10 @@ class VisionProviderRegistry:
         if key not in self._cache:
             from okey_vision.providers.roboflow_workflow import RoboflowWorkflowProvider
 
-            kwargs = {}
-            if api_url:
-                kwargs["api_url"] = api_url
             self._cache[key] = RoboflowWorkflowProvider(
                 api_key=api_key,
                 workspace_name=workspace_name,
                 workflow_id=workflow_id,
-                **kwargs,
+                api_url=api_url if api_url is not None else "https://serverless.roboflow.com",
             )
         return self._cache[key]

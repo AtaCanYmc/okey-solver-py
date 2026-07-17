@@ -176,6 +176,7 @@ graph TD
 
 ## 📖 Extended Documentation
 
+- 🧮 **[Solver Engines Guide](docs/SOLVER_ENGINES.md)** - Mathematical formulations, algorithmic flowcharts (Greedy, Backtracking, Hybrid, ILP), and execution performance matrix.
 - 🏗 **[Architecture & Flow Reference](docs/ARCHITECTURE.md)** - Visual flow pipelines, observers, and providers.
 - 📜 **[Game Rules Reference](docs/ALGORITHM_RULES.md)** - Explanations of run configurations, circular sequences, and
   Joker/False Okey rules.

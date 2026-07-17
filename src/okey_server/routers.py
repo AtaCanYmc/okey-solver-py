@@ -36,7 +36,7 @@ async def run_vision_safe(coro) -> Any:
     except OkeyVisionError as e:
         logger.exception("Vision provider error occurred")
         raise HTTPException(status_code=500, detail=str(e))
-    except Exception as e:
+    except Exception:
         logger.exception("Unexpected server error in vision pipeline")
         raise HTTPException(
             status_code=500, detail="An internal server error occurred."
@@ -55,7 +55,7 @@ def arrange_hand(
         return solver.find_best_arrangement(req.tiles, req.okey_meta)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    except Exception:
         logger.exception("Unexpected server error in solver")
         raise HTTPException(
             status_code=500, detail="An internal server error occurred."

@@ -1,6 +1,6 @@
 # okey_server/dependencies.py
 from typing import Optional, Any
-from fastapi import Request, UploadFile, File, Form, HTTPException, Depends
+from fastapi import Request, UploadFile, File, Form, HTTPException
 from okey_solver import create_standard_okey_solver, SolverEngine
 
 
