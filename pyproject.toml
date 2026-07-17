@@ -15,24 +15,37 @@ packages = [
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
 pydantic = "^2.0"
-pydantic-settings = "^2.0"
+pydantic-settings = { version = "^2.0", optional = true }
 # Core dependencies
 numpy = { version = ">=1.20,<3.0", optional = true }
 opencv-python = { version = "^4.0", optional = true }
 pillow = { version = ">=10,<13", optional = true }
 requests = { version = "^2.31", optional = true }
 httpx = { version = "^0.27", optional = true }
-ultralytics = { version = "^8.0", optional = true }
 fastapi = { version = ">=0.139.2", optional = true }
 starlette = ">=1.3.1"
 uvicorn = { version = "^0.22.0", optional = true }
 pyTelegramBotAPI = { version = "^4.12", optional = true }
 inference-sdk = { version = "^1.3.5", optional = true }
 python-multipart = { version = ">=0.0.32", optional = true }
+structlog = { version = "^24.0.0", optional = true }
+opentelemetry-api = { version = "^1.24.0", optional = true }
+opentelemetry-sdk = { version = "^1.24.0", optional = true }
+opentelemetry-instrumentation-fastapi = { version = "^0.45b0", optional = true }
 
 [tool.poetry.extras]
 vision = ["numpy", "opencv-python", "pillow", "requests", "httpx", "inference-sdk"]
-server = ["fastapi", "uvicorn", "dotenv", "python-multipart"]
+server = [
+    "fastapi",
+    "uvicorn",
+    "dotenv",
+    "python-multipart",
+    "pydantic-settings",
+    "structlog",
+    "opentelemetry-api",
+    "opentelemetry-sdk",
+    "opentelemetry-instrumentation-fastapi"
+]
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8,<10"
@@ -40,6 +53,7 @@ pytest-asyncio = "^1.4.0"
 pytest-cov = ">=4.1,<7.0"
 mypy = ">=1,<3"
 ruff = ">=0.3,<0.16"
+hypothesis = "^6.0.0"
 
 [tool.poetry.group.docs]
 optional = true

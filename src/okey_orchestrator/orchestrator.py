@@ -1,9 +1,12 @@
 # okey_orchestrator/orchestrator.py
 import asyncio
+import structlog
 from typing import Any, List, Optional, Callable
 from okey_vision.engine import VisionEngine, VisionPipeline
 from okey_solver import create_standard_okey_solver, SolverEngine
 from okey_core.types import Tile, Arrangement, OkeyMeta, OrchestratorResult
+
+logger = structlog.get_logger("okey_orchestrator.orchestrator")
 
 
 class VisionOrchestrator:
@@ -25,15 +28,27 @@ class VisionOrchestrator:
         )
 
     def analyze_frame(self, frame: Any) -> OrchestratorResult:
+        logger.info("Starting synchronous frame analysis pipeline")
         tiles = self.vision_engine.process_frame(frame)
+        logger.info("Layout detection completed, calling solver", tile_count=len(tiles))
         output = self.solve_tiles(tiles, self.okey_meta)
         arrangement = output if isinstance(output, Arrangement) else None
+        logger.info(
+            "Mathematical solver completed successfully",
+            score=arrangement.totalScore if arrangement else 0,
+        )
         return OrchestratorResult(tiles=tiles, arrangement=arrangement)
 
     async def analyze_frame_async(self, frame: Any) -> OrchestratorResult:
+        logger.info("Starting async frame analysis pipeline")
         tiles = await self.vision_engine.process_frame_async(frame)
+        logger.info("Layout detection completed, calling solver", tile_count=len(tiles))
         output = await asyncio.to_thread(self.solve_tiles, tiles, self.okey_meta)
         arrangement = output if isinstance(output, Arrangement) else None
+        logger.info(
+            "Mathematical solver completed successfully",
+            score=arrangement.totalScore if arrangement else 0,
+        )
         return OrchestratorResult(tiles=tiles, arrangement=arrangement)
 
 

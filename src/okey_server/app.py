@@ -1,6 +1,6 @@
 # okey_server/app.py
 from contextlib import asynccontextmanager
-import logging
+import structlog
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -8,10 +8,12 @@ from fastapi.responses import JSONResponse
 from okey_server.settings import OkeyServerSettings
 from okey_server.registry import VisionProviderRegistry
 from okey_server.routers import router
+from okey_server.logging_config import setup_logging
+from okey_server.otel_config import setup_opentelemetry
 
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("okey_server")
+# Set up structured logging
+setup_logging()
+logger = structlog.get_logger("okey_server")
 
 
 @asynccontextmanager
@@ -30,12 +32,13 @@ async def lifespan(app: FastAPI):
                 api_url=settings.rf_api_url,
             )
             logger.info(
-                f"Pre-warmed default RoboflowWorkflowProvider (Workspace: {settings.rf_workspace}, "
-                f"Workflow: {settings.rf_workflow_id})"
+                "Pre-warmed default RoboflowWorkflowProvider",
+                workspace=settings.rf_workspace,
+                workflow_id=settings.rf_workflow_id,
             )
         except Exception as e:
             logger.exception(
-                f"Warning: Failed to pre-warm default Roboflow workflow provider: {e}"
+                "Failed to pre-warm default Roboflow workflow provider", error=str(e)
             )
 
     yield
@@ -48,6 +51,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Initialize OpenTelemetry instrumentation
+setup_opentelemetry(app)
+
 # Attach state structures
 app.state.settings = OkeyServerSettings()
 app.state.provider_registry = VisionProviderRegistry()
@@ -56,7 +62,7 @@ app.state.provider_registry = VisionProviderRegistry()
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """
-    Global exception handler to capture all unhandled exceptions, log them,
+    Global exception handler to capture all unhandled exceptions, log them structured,
     and return a clean generic 500 error to prevent internal info leakage.
     """
     from fastapi import HTTPException as FastAPIHTTPException
@@ -73,13 +79,13 @@ async def global_exception_handler(request: Request, exc: Exception):
 
     if isinstance(exc, OkeyVisionError):
         # Known vision exceptions should return their detailed message under 500
-        logger.exception("A known vision provider error occurred.")
+        logger.exception("A known vision provider error occurred.", error=str(exc))
         return JSONResponse(
             status_code=500,
             content={"detail": str(exc)},
         )
 
-    logger.exception("An unhandled exception occurred in the server.")
+    logger.exception("An unhandled exception occurred in the server.", error=str(exc))
     return JSONResponse(
         status_code=500,
         content={"detail": "An internal server error occurred."},

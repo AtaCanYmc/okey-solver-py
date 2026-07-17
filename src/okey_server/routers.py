@@ -1,5 +1,4 @@
-# okey_server/routers.py
-import logging
+import structlog
 from typing import List, Optional, Any
 from fastapi import APIRouter, Depends, Form, HTTPException
 from pydantic import BaseModel
@@ -13,7 +12,7 @@ from okey_server.dependencies import (
     get_roboflow_workflow_provider,
 )
 
-logger = logging.getLogger("okey_server.routers")
+logger = structlog.get_logger("okey_server.routers")
 router = APIRouter()
 
 
