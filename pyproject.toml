@@ -34,13 +34,14 @@ opentelemetry-api = { version = "^1.24.0", optional = true }
 opentelemetry-sdk = { version = "^1.24.0", optional = true }
 opentelemetry-instrumentation-fastapi = { version = "^0.45b0", optional = true }
 setuptools = ">=60.0.0"
+python-dotenv = { version = "^1.0.0", optional = true }
 
 [tool.poetry.extras]
 vision = ["numpy", "opencv-python", "pillow", "requests", "httpx", "inference-sdk"]
 server = [
     "fastapi",
     "uvicorn",
-    "dotenv",
+    "python-dotenv",
     "python-multipart",
     "pydantic-settings",
     "structlog",

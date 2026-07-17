@@ -4251,10 +4251,10 @@ test = ["big-O", "jaraco.functools", "jaraco.itertools", "jaraco.test", "more_it
 type = ["pytest-mypy (>=1.0.1) ; platform_python_implementation != \"PyPy\""]
 
 [extras]
-server = ["fastapi", "opentelemetry-api", "opentelemetry-instrumentation-fastapi", "opentelemetry-sdk", "pydantic-settings", "python-multipart", "structlog", "uvicorn"]
+server = ["fastapi", "opentelemetry-api", "opentelemetry-instrumentation-fastapi", "opentelemetry-sdk", "pydantic-settings", "python-dotenv", "python-multipart", "structlog", "uvicorn"]
 vision = ["httpx", "inference-sdk", "numpy", "opencv-python", "pillow", "requests"]
 
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.13"
-content-hash = "955d33b7e514e76df186703d636d28a91ebe647626f56d442ba416b2c9e82fde"
+content-hash = "16a536f01a07acb09ba9a61cde7337ff775c48803eccbf3be6acdb99623d3cda"
