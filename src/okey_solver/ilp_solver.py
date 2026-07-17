@@ -1,6 +1,6 @@
 # okey_solver/ilp_solver.py
 import pulp
-from typing import List
+from typing import List, Dict
 from okey_core.types import Tile, Meld, Arrangement
 
 
@@ -16,7 +16,7 @@ class IlpSolver:
             return Arrangement(melds=[], remainingTiles=[], totalScore=0)
 
         # Create map of original Pydantic tiles
-        pydantic_tile_map = {t.id: t for t in resolved_tiles}
+        {t.id: t for t in resolved_tiles}
 
         # Initialize the maximization problem
         prob = pulp.LpProblem("Okey_Hand_Arrangement", pulp.LpMaximize)
@@ -36,7 +36,7 @@ class IlpSolver:
         tile_to_idx = {t.id: idx for idx, t in enumerate(resolved_tiles)}
 
         # Constraints: Each tile can be part of at most one selected meld
-        tile_usages = {idx: [] for idx in range(len(resolved_tiles))}
+        tile_usages: Dict[int, List[int]] = {idx: [] for idx in range(len(resolved_tiles))}
         for j, meld in enumerate(all_possible_melds):
             for t in meld.tiles:
                 if t.id in tile_to_idx:

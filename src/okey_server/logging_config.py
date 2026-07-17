@@ -1,4 +1,4 @@
-# src/okey_server/logging_config.py
+from typing import List, Any
 import structlog
 from opentelemetry import trace
 
@@ -20,7 +20,7 @@ def setup_logging() -> None:
     """
     Configures structlog with JSON rendering and correlation trace ID injection.
     """
-    processors = [
+    processors: List[Any] = [
         structlog.contextvars.merge_contextvars,
         structlog.processors.add_log_level,
         structlog.processors.TimeStamper(fmt="iso"),

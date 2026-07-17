@@ -1,5 +1,5 @@
 # okey_solver/solver.py
-from typing import List, Optional, Dict, Any, Union
+from typing import List, Optional, Dict, Any
 from okey_core.types import Tile, Arrangement, OkeyMeta, TileColor
 from okey_solver.rules import OkeyRuleValidator
 from okey_solver.meld_generator import MeldGenerator
@@ -19,6 +19,8 @@ class SolverEngine:
         val = validator or OkeyRuleValidator()
         self.meld_generator = MeldGenerator(val)
         self.strategy = strategy.lower()
+        from typing import Union
+        self.solver: Union[BacktrackingSolver, GreedySolver, IlpSolver, HybridSolver]
 
         if self.strategy == "greedy":
             self.solver = GreedySolver()

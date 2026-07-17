@@ -1,5 +1,5 @@
 # okey_solver/evaluator.py
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Tuple, Any, cast
 from okey_core.types import Tile, TileColor, Arrangement
 
 
@@ -34,13 +34,13 @@ class DiscardEvaluator:
             return []
 
         # Count copies of each tile color/value in the current hand
-        hand_counts = {}
+        hand_counts: Dict[Tuple[TileColor, int], int] = {}
         for t in hand:
             key = (t.color, t.value)
             hand_counts[key] = hand_counts.get(key, 0) + 1
 
         # Calculate outstanding tiles (in deck/other players' hands)
-        outstanding = {}
+        outstanding: Dict[Tuple[TileColor, int], int] = {}
         for key, count in self.total_deck.items():
             outstanding[key] = max(0, count - hand_counts.get(key, 0))
 
@@ -107,21 +107,21 @@ class DiscardEvaluator:
                 (other_colors[1], other_colors[2]),
             ]
             for c1, c2 in group_pairs:
-                p1_key = (c1, t.value)
-                p2_key = (c2, t.value)
+                gp1_key = (c1, t.value)
+                gp2_key = (c2, t.value)
 
-                p1_in_hand = hand_counts.get(p1_key, 0) > 0
-                p2_in_hand = hand_counts.get(p2_key, 0) > 0
+                gp1_in_hand = hand_counts.get(gp1_key, 0) > 0
+                gp2_in_hand = hand_counts.get(gp2_key, 0) > 0
 
-                if p1_in_hand and p2_in_hand:
+                if gp1_in_hand and gp2_in_hand:
                     score += 4.0
-                elif p1_in_hand:
-                    score += outstanding.get(p2_key, 0) * 1.2
-                elif p2_in_hand:
-                    score += outstanding.get(p1_key, 0) * 1.2
+                elif gp1_in_hand:
+                    score += outstanding.get(gp2_key, 0) * 1.2
+                elif gp2_in_hand:
+                    score += outstanding.get(gp1_key, 0) * 1.2
                 else:
                     score += (
-                        outstanding.get(p1_key, 0) * outstanding.get(p2_key, 0) * 0.15
+                        outstanding.get(gp1_key, 0) * outstanding.get(gp2_key, 0) * 0.15
                     )
 
             recommendations.append(
@@ -133,5 +133,5 @@ class DiscardEvaluator:
             )
 
         # Sort with lowest score first (least useful tile is the best candidate to discard)
-        recommendations.sort(key=lambda x: x["score"])
+        recommendations.sort(key=lambda x: cast(float, x["score"]))
         return recommendations

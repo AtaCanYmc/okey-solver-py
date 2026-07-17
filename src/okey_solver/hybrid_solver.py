@@ -29,7 +29,6 @@ class HybridSolver:
         greedy_arrangement = self.greedy_solver.solve(
             resolved_tiles, all_possible_melds
         )
-        best_arrangement_melds = greedy_arrangement.melds
         max_score = greedy_arrangement.totalScore
 
         # If greedy already placed all tiles, return immediately

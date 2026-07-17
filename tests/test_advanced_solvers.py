@@ -1,5 +1,5 @@
 # tests/test_advanced_solvers.py
-from okey_core.types import Tile, TileColor, OkeyMeta
+from okey_core.types import Tile, TileColor
 from okey_solver import create_standard_okey_solver, DiscardEvaluator
 
 
