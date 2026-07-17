@@ -20,6 +20,7 @@ class SolverEngine:
         self.meld_generator = MeldGenerator(val)
         self.strategy = strategy.lower()
         from typing import Union
+
         self.solver: Union[BacktrackingSolver, GreedySolver, IlpSolver, HybridSolver]
 
         if self.strategy == "greedy":

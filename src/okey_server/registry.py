@@ -21,6 +21,8 @@ class VisionProviderRegistry:
                 api_key=api_key,
                 workspace_name=workspace_name,
                 workflow_id=workflow_id,
-                api_url=api_url if api_url is not None else "https://serverless.roboflow.com",
+                api_url=api_url
+                if api_url is not None
+                else "https://serverless.roboflow.com",
             )
         return self._cache[key]
