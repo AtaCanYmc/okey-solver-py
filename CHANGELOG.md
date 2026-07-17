@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.5.0](https://github.com/AtaCanYmc/okey-solver-py/compare/v0.4.0...v0.5.0) (2026-07-17)
+
+
+### Features
+
+* add coverage.xml for test coverage reporting and update dependencies in pyproject.toml and poetry.lock ([9472853](https://github.com/AtaCanYmc/okey-solver-py/commit/9472853a01d196397cae3f118a43a6227f19a64f))
+* add example usage and engine selection section to SOLVER_ENGINES.md ([8ceea44](https://github.com/AtaCanYmc/okey-solver-py/commit/8ceea44e2168d6995ee95710cc5f9613e02ef0e4))
+* add ILP and Hybrid solvers, and DiscardEvaluator for enhanced tile arrangement strategies ([393c87a](https://github.com/AtaCanYmc/okey-solver-py/commit/393c87a41de03a2cfe6e7d5d581656b639ab3340))
+* add setuptools as an optional dependency for server extras in pyproject.toml and poetry.lock ([f3cf96b](https://github.com/AtaCanYmc/okey-solver-py/commit/f3cf96b67c673f61d5f0dd81b9b28d0713e8c552))
+* format code for improved readability in solver modules ([ec43429](https://github.com/AtaCanYmc/okey-solver-py/commit/ec434297e45b10f91a44527feee27ef00f81fd3a))
+* format code for improved readability in solver modules ([c48c99d](https://github.com/AtaCanYmc/okey-solver-py/commit/c48c99db84c6cb98a757c914f3bacb200da0d07a))
+* integrate OpenTelemetry and structlog for enhanced logging and tracing ([37548f4](https://github.com/AtaCanYmc/okey-solver-py/commit/37548f437f1e9de55ec639690f175359dabf97b1))
+* refine type hints and clean up unused variables in solver and evaluator modules ([7e3abcb](https://github.com/AtaCanYmc/okey-solver-py/commit/7e3abcbcfee10821f2f636f85b79889a75454524))
+* remove setuptools as an optional dependency for server extras i… ([5971f97](https://github.com/AtaCanYmc/okey-solver-py/commit/5971f97e03e640368b26fb8b47fc8a61368a6340))
+* remove setuptools as an optional dependency for server extras in pyproject.toml and poetry.lock ([e8ea3a7](https://github.com/AtaCanYmc/okey-solver-py/commit/e8ea3a7789136b017fe8280ffbd376d8a026b4b0))
+* update coverage metrics in coverage.xml and adjust dependencies in poetry.lock ([783b37f](https://github.com/AtaCanYmc/okey-solver-py/commit/783b37f7e172e1c1b4ca2f96e2cb92078b208ff6))
+* update coverage.xml and adjust setuptools version in pyproject.toml ([61629c9](https://github.com/AtaCanYmc/okey-solver-py/commit/61629c91e10b45ecd7359deea354022029938edd))
+
 ## [0.4.0](https://github.com/AtaCanYmc/okey-solver-py/compare/v0.3.0...v0.4.0) (2026-07-17)
 
 
