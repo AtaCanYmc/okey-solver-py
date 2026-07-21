@@ -22,16 +22,16 @@ class BeamSearchSolver:
         pydantic_tile_map = {t.id: t for t in resolved_tiles}
 
         # DTO Mapping
-        light_tiles = [LightTile(t.id, t.color, t.value) for t in resolved_tiles]
-        light_melds = []
+        light_tiles = [LightTile(tile.id, tile.color, tile.value) for tile in resolved_tiles]
+        light_melds: List[LightMeld] = []
         for m in all_possible_melds:
-            m_tiles = [LightTile(t.id, t.color, t.value) for t in m.tiles]
+            m_tiles = [LightTile(tile.id, tile.color, tile.value) for tile in m.tiles]
             light_melds.append(LightMeld(m.type, m_tiles, m.score))
 
         # Sort candidate melds by score descending to focus on highest potential first
         light_melds.sort(key=lambda m: (m.score, -len(m.tiles)), reverse=True)
 
-        tile_to_bit = {t.id: idx for idx, t in enumerate(light_tiles)}
+        tile_to_bit = {tile.id: idx for idx, tile in enumerate(light_tiles)}
         num_tiles = len(light_tiles)
         initial_mask = (1 << num_tiles) - 1
 
@@ -46,9 +46,9 @@ class BeamSearchSolver:
             # Precalculate meld mask and whether it is valid
             meld_mask = 0
             meld_valid = True
-            for t in meld.tiles:
-                if t.id in tile_to_bit:
-                    meld_mask |= 1 << tile_to_bit[t.id]
+            for tile in meld.tiles:
+                if tile.id in tile_to_bit:
+                    meld_mask |= 1 << tile_to_bit[tile.id]
                 else:
                     meld_valid = False
                     break
@@ -91,15 +91,15 @@ class BeamSearchSolver:
         best_melds = []
         for lm in best_arrangement:
             tiles_mapped = [pydantic_tile_map[lt.id] for lt in lm.tiles]
-            for t in tiles_mapped:
-                used_ids.add(t.id)
+            for pyd_tile in tiles_mapped:
+                used_ids.add(pyd_tile.id)
             best_melds.append(Meld(type=lm.type, tiles=tiles_mapped, score=lm.score))
 
-        remaining_tiles = [t for t in resolved_tiles if t.id not in used_ids]
+        remaining_tiles = [pyd_tile for pyd_tile in resolved_tiles if pyd_tile.id not in used_ids]
 
         # Sort remaining tiles to match the original ordering
-        original_id_order = {t.id: idx for idx, t in enumerate(resolved_tiles)}
-        remaining_tiles.sort(key=lambda t: original_id_order[t.id])
+        original_id_order = {pyd_tile.id: idx for idx, pyd_tile in enumerate(resolved_tiles)}
+        remaining_tiles.sort(key=lambda pyd_tile: original_id_order[pyd_tile.id])
 
         return Arrangement(
             melds=best_melds,
