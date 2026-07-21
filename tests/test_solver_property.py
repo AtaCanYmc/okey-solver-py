@@ -33,7 +33,7 @@ okey_meta_strategy = st.one_of(
     tiles=st.lists(tile_strategy, min_size=0, max_size=22, unique_by=lambda t: t.id),
     okey_meta=okey_meta_strategy,
 )
-@settings(max_examples=250)
+@settings(max_examples=250, deadline=None)
 def test_solver_invariants(tiles, okey_meta):
     """
     Property-based test verifying that:

@@ -246,7 +246,10 @@ class MeldGenerator:
             if current_val in circular_map:
                 tiles = circular_map[current_val]
                 for tile in tiles:
-                    build_run(current_val + 1, current_tiles + [tile], wildcards_used)
+                    if not any(x.id == tile.id for x in current_tiles):
+                        build_run(
+                            current_val + 1, current_tiles + [tile], wildcards_used
+                        )
 
             if wildcards_used < max_wildcards and wildcards_used < len(wildcards):
                 wildcard_tile = Tile(

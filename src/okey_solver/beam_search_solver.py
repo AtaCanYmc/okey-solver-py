@@ -22,7 +22,9 @@ class BeamSearchSolver:
         pydantic_tile_map = {t.id: t for t in resolved_tiles}
 
         # DTO Mapping
-        light_tiles = [LightTile(tile.id, tile.color, tile.value) for tile in resolved_tiles]
+        light_tiles = [
+            LightTile(tile.id, tile.color, tile.value) for tile in resolved_tiles
+        ]
         light_melds: List[LightMeld] = []
         for m in all_possible_melds:
             m_tiles = [LightTile(tile.id, tile.color, tile.value) for tile in m.tiles]
@@ -95,10 +97,14 @@ class BeamSearchSolver:
                 used_ids.add(pyd_tile.id)
             best_melds.append(Meld(type=lm.type, tiles=tiles_mapped, score=lm.score))
 
-        remaining_tiles = [pyd_tile for pyd_tile in resolved_tiles if pyd_tile.id not in used_ids]
+        remaining_tiles = [
+            pyd_tile for pyd_tile in resolved_tiles if pyd_tile.id not in used_ids
+        ]
 
         # Sort remaining tiles to match the original ordering
-        original_id_order = {pyd_tile.id: idx for idx, pyd_tile in enumerate(resolved_tiles)}
+        original_id_order = {
+            pyd_tile.id: idx for idx, pyd_tile in enumerate(resolved_tiles)
+        }
         remaining_tiles.sort(key=lambda pyd_tile: original_id_order[pyd_tile.id])
 
         return Arrangement(
