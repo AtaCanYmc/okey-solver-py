@@ -24,10 +24,9 @@ The codebase is split into fully decoupled, high-performance packages under the 
 
 1. **`okey_core`**: Holds shared domain types (`Tile`, `Meld`, `Arrangement`, `OrchestratorResult`) and exceptions.
    Completely independent.
-2. **`okey_solver`**: Stateless mathematical engines to calculate optimal run/group melds and identical pairs. Uses
-   slot-based DTO mapping (`LightTile`, `LightMeld`) to bypass Pydantic model loop overhead.
+2. **`okey_solver`**: Stateless mathematical engines to calculate optimal run/group melds and identical pairs. Supports 8 solver strategies (Backtracking, Greedy, ILP, Hybrid, Beam Search, Genetic Algorithm, Simulated Annealing, and MCTS) and uses slot-based DTO mapping (`LightTile`, `LightMeld`) to bypass Pydantic model loop overhead.
 3. **`okey_vision`**: Translates frames (numpy, PIL, bytes, base64) into tile predictions. Queries the cloud Roboflow Workflow API (including the pretrained [Okey-Rummikub Model on Roboflow Universe](https://universe.roboflow.com/ata-dc7ry/okey-rummikub) trained on the [Okey-Data Kaggle Dataset](https://www.kaggle.com/datasets/atacanyaymac/okey-data)) to detect layouts. Decoupled from solver logic via an injectable `LabelParserStrategy`.
-4. **`okey_orchestrator`**: Orchestrates pipelines by feeding vision outputs into the mathematical solver. Supports passing custom `SolverEngine` instances or a `strategy` string directly during setup.
+4. **`okey_orchestrator`**: Orchestrates pipelines by feeding vision outputs into the mathematical solver. Supports passing custom `SolverEngine` instances or any of the 8 strategy strings during setup.
 5. **`okey_server`**: A microservice framework delivering endpoints for vision processing and hand arrangement.
 
 ---
@@ -100,7 +99,7 @@ from okey_orchestrator import VisionSolverEngine
 provider = RoboflowWorkflowProvider(api_key="YOUR_ROBOFLOW_API_KEY")
 
 # 2. Bind pipeline inside the orchestrator with strategy selection
-# Supports strategy="backtracking", strategy="greedy", or passing a custom solver=instance
+# Supports strategies: "backtracking", "greedy", "ilp", "hybrid", "beam", "genetic", "annealing", "mcts"
 engine = VisionSolverEngine(pipeline=provider, strategy="greedy")
 
 # 3. Analyze layout image and solve
@@ -139,7 +138,7 @@ okey-serve --port 8000
 
 | Feature | Package | Mode | Capabilities |
 | :--- | :--- | :--- | :--- |
-| **State Resolution** | `okey_solver` | Sync | Stateless backtracking and greedy hand-arranging meld solvers. Supports circular run checks and Joker resolutions. |
+| **State Resolution** | `okey_solver` | Sync | Stateless backtracking, greedy, ILP, hybrid, beam search, genetic algorithm, simulated annealing, and MCTS hand-arranging meld solvers. Supports circular run checks and Joker resolutions. |
 | **Layout Detection** | `okey_vision` | Async / Sync | Multi-stage Roboflow Workflows querying, OCR labeling, confidence filters, and custom label mapping. |
 | **E2E Orchestration** | `okey_orchestrator` | Async / Sync | Feeds images directly into `okey_vision` and pipes outcomes into `okey_solver` dynamically. |
 | **FastAPI Microservice** | `okey_server` | Async | API exposing `/vision/solve` and `/vision/extract` with size (10MB) & MIME checks, instance registry caching, and safe error handling. |
@@ -176,10 +175,17 @@ graph TD
 
 ## 📖 Extended Documentation
 
-- 🧮 **[Solver Engines Guide](docs/SOLVER_ENGINES.md)** - Mathematical formulations, algorithmic flowcharts (Greedy, Backtracking, Hybrid, ILP), and execution performance matrix.
+- 🧮 **[Solver Engines Guide](docs/SOLVER_ENGINES.md)** - General mathematical formulations, performance comparison matrix, and links to detailed guides:
+  - [Greedy Solver Guide](docs/greedy_solver.md)
+  - [Backtracking Solver Guide](docs/backtracking_solver.md)
+  - [ILP Solver Guide](docs/ilp_solver.md)
+  - [Hybrid Solver Guide](docs/hybrid_solver.md)
+  - [Beam Search Solver Guide](docs/beam_search_solver.md)
+  - [Genetic Algorithm Solver Guide](docs/genetic_solver.md)
+  - [Simulated Annealing Solver Guide](docs/simulated_annealing_solver.md)
+  - [MCTS Solver Guide](docs/mcts_solver.md)
 - 🏗 **[Architecture & Flow Reference](docs/ARCHITECTURE.md)** - Visual flow pipelines, observers, and providers.
-- 📜 **[Game Rules Reference](docs/ALGORITHM_RULES.md)** - Explanations of run configurations, circular sequences, and
-  Joker/False Okey rules.
+- 📜 **[Game Rules Reference](docs/ALGORITHM_RULES.md)** - Explanations of run configurations, circular sequences, and Joker/False Okey rules.
 - 💻 **[CLI Usage Guide](docs/CLI_USAGE.md)** - Terminal parameters for running predictions and solvers.
-- 🤝 **[Contributing Guide](CONTRIBUTING.md)** - Guidelines for configuring local poetry environments and running
-  Ruff/Mypy checks.
+- 🤝 **[Contributing Guide](CONTRIBUTING.md)** - Guidelines for configuring local poetry environments and running Ruff/Mypy checks.
+
