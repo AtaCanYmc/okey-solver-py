@@ -78,7 +78,6 @@ class SimulatedAnnealingSolver:
         current_state = [random.choice([0, 1]) for _ in range(num_melds)]
         current_score, current_chosen = evaluate(current_state)
 
-        best_state = list(current_state)
         best_score = current_score
         best_chosen = current_chosen
 
@@ -103,7 +102,6 @@ class SimulatedAnnealingSolver:
                     current_chosen = neighbor_chosen
                     if neighbor_score > best_score:
                         best_score = neighbor_score
-                        best_state = list(neighbor_state)
                         best_chosen = neighbor_chosen
                 else:
                     # Calculate acceptance probability

@@ -82,9 +82,9 @@ class BeamSearchSolver:
 
         # Best arrangement is the first state in the final beam
         if beam:
-            best_score, best_mask, best_arrangement = beam[0]
+            best_score, _, best_arrangement = beam[0]
         else:
-            best_score, best_mask, best_arrangement = 0, initial_mask, []
+            best_score, _, best_arrangement = 0, initial_mask, []
 
         # Map back to original Pydantic structures
         used_ids = set()
