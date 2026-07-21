@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.0](https://github.com/AtaCanYmc/okey-solver-py/compare/v0.5.0...v0.6.0) (2026-07-21)
+
+
+### Features
+
+* add new solver engines: Beam Search, Genetic Algorithm, Simulated Annealing, and MCTS; update solver interface ([40f8a82](https://github.com/AtaCanYmc/okey-solver-py/commit/40f8a82c3618e691d1f25176548e77ce48e6653f))
+* update README.md to reflect support for 8 solver strategies in okey_solver and enhance documentation links ([f0e801b](https://github.com/AtaCanYmc/okey-solver-py/commit/f0e801b5a144ff5429d9e17d291c0cec07c6f38f))
+
 ## [0.5.0](https://github.com/AtaCanYmc/okey-solver-py/compare/v0.4.0...v0.5.0) (2026-07-17)
 
 
