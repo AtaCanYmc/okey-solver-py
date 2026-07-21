@@ -42,7 +42,7 @@ class MctsSolver:
 
         # DTO Mapping
         light_tiles = [LightTile(t.id, t.color, t.value) for t in resolved_tiles]
-        light_melds = []
+        light_melds: List[LightMeld] = []
         for m in all_possible_melds:
             m_tiles = [LightTile(t.id, t.color, t.value) for t in m.tiles]
             light_melds.append(LightMeld(m.type, m_tiles, m.score))
@@ -54,11 +54,11 @@ class MctsSolver:
 
         # Precalculate masks for all light melds
         meld_masks = []
-        for m in light_melds:
+        for lm in light_melds:
             mask = 0
-            for t in m.tiles:
-                if t.id in tile_to_bit:
-                    mask |= 1 << tile_to_bit[t.id]
+            for tile in lm.tiles:
+                if tile.id in tile_to_bit:
+                    mask |= 1 << tile_to_bit[tile.id]
             meld_masks.append(mask)
 
         # Helper to get all valid actions (candidate meld indices that do not overlap with current mask)
@@ -141,7 +141,7 @@ class MctsSolver:
                 best_chosen_indices = tuple(sim_chosen)
 
             # 4. Backpropagation
-            temp_node = node
+            temp_node: Optional[MctsNode] = node
             while temp_node is not None:
                 temp_node.visits += 1
                 temp_node.total_value += score

@@ -34,7 +34,7 @@ class SimulatedAnnealingSolver:
 
         # DTO Mapping
         light_tiles = [LightTile(t.id, t.color, t.value) for t in resolved_tiles]
-        light_melds = []
+        light_melds: List[LightMeld] = []
         for m in all_possible_melds:
             m_tiles = [LightTile(t.id, t.color, t.value) for t in m.tiles]
             light_melds.append(LightMeld(m.type, m_tiles, m.score))
@@ -46,11 +46,11 @@ class SimulatedAnnealingSolver:
 
         # Precalculate masks for all light melds
         meld_masks = []
-        for m in light_melds:
+        for lm in light_melds:
             mask = 0
-            for t in m.tiles:
-                if t.id in tile_to_bit:
-                    mask |= 1 << tile_to_bit[t.id]
+            for tile in lm.tiles:
+                if tile.id in tile_to_bit:
+                    mask |= 1 << tile_to_bit[tile.id]
             meld_masks.append(mask)
 
         # Helper to repair chromosome and calculate score/melds
@@ -78,7 +78,6 @@ class SimulatedAnnealingSolver:
         current_state = [random.choice([0, 1]) for _ in range(num_melds)]
         current_score, current_chosen = evaluate(current_state)
 
-        best_state = list(current_state)
         best_score = current_score
         best_chosen = current_chosen
 
@@ -103,7 +102,6 @@ class SimulatedAnnealingSolver:
                     current_chosen = neighbor_chosen
                     if neighbor_score > best_score:
                         best_score = neighbor_score
-                        best_state = list(neighbor_state)
                         best_chosen = neighbor_chosen
                 else:
                     # Calculate acceptance probability
