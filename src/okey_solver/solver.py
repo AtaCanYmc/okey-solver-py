@@ -8,6 +8,10 @@ from okey_solver.greedy_solver import GreedySolver
 from okey_solver.pair_finder import PairFinder
 from okey_solver.ilp_solver import IlpSolver
 from okey_solver.hybrid_solver import HybridSolver
+from okey_solver.beam_search_solver import BeamSearchSolver
+from okey_solver.genetic_solver import GeneticSolver
+from okey_solver.simulated_annealing_solver import SimulatedAnnealingSolver
+from okey_solver.mcts_solver import MctsSolver
 
 
 class SolverEngine:
@@ -21,7 +25,16 @@ class SolverEngine:
         self.strategy = strategy.lower()
         from typing import Union
 
-        self.solver: Union[BacktrackingSolver, GreedySolver, IlpSolver, HybridSolver]
+        self.solver: Union[
+            BacktrackingSolver,
+            GreedySolver,
+            IlpSolver,
+            HybridSolver,
+            BeamSearchSolver,
+            GeneticSolver,
+            SimulatedAnnealingSolver,
+            MctsSolver,
+        ]
 
         if self.strategy == "greedy":
             self.solver = GreedySolver()
@@ -29,6 +42,14 @@ class SolverEngine:
             self.solver = IlpSolver()
         elif self.strategy == "hybrid":
             self.solver = HybridSolver()
+        elif self.strategy == "beam":
+            self.solver = BeamSearchSolver()
+        elif self.strategy == "genetic":
+            self.solver = GeneticSolver()
+        elif self.strategy == "annealing":
+            self.solver = SimulatedAnnealingSolver()
+        elif self.strategy == "mcts":
+            self.solver = MctsSolver()
         else:
             self.solver = BacktrackingSolver()
 
