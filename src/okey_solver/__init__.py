@@ -11,6 +11,10 @@ from okey_solver.backtracking_solver import BacktrackingSolver
 from okey_solver.pair_finder import PairFinder
 from okey_solver.ilp_solver import IlpSolver
 from okey_solver.hybrid_solver import HybridSolver
+from okey_solver.beam_search_solver import BeamSearchSolver
+from okey_solver.genetic_solver import GeneticSolver
+from okey_solver.simulated_annealing_solver import SimulatedAnnealingSolver
+from okey_solver.mcts_solver import MctsSolver
 from okey_solver.evaluator import DiscardEvaluator
 from okey_solver.errors import (
     OkeySolverError,
@@ -33,6 +37,10 @@ __all__ = [
     "PairFinder",
     "IlpSolver",
     "HybridSolver",
+    "BeamSearchSolver",
+    "GeneticSolver",
+    "SimulatedAnnealingSolver",
+    "MctsSolver",
     "DiscardEvaluator",
     "OkeySolverError",
     "InvalidTileError",

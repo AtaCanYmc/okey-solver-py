@@ -142,6 +142,30 @@ This formulation is solved using standard solver libraries like `pulp` (invoking
 
 ---
 
+### 3.5 Beam Search Solver
+* **Concept**: Explores the top-$K$ best states (beam width) at each step to find high-scoring hand arrangements efficiently without traversing the whole tree.
+* **Detailed Guide**: [Beam Search Solver Document](beam_search_solver.md)
+
+---
+
+### 3.6 Genetic Algorithm Solver
+* **Concept**: Employs evolutionary operators (selection, crossover, mutation, elitism) combined with an overlap-repair heuristic.
+* **Detailed Guide**: [Genetic Algorithm Solver Document](genetic_solver.md)
+
+---
+
+### 3.7 Simulated Annealing Solver
+* **Concept**: Leverages simulated cooling to probabilistically accept worse configurations to avoid local minima.
+* **Detailed Guide**: [Simulated Annealing Solver Document](simulated_annealing_solver.md)
+
+---
+
+### 3.8 Monte Carlo Tree Search (MCTS) Solver
+* **Concept**: Explores the decision space using UCT selection, fast random rollouts/simulations, and backpropagation.
+* **Detailed Guide**: [MCTS Solver Document](mcts_solver.md)
+
+---
+
 ## 5. Performance & Decision Matrix
 
 | Solver | Speed | Optimality Guarantee | Memory Usage | Best Used For |
@@ -150,6 +174,10 @@ This formulation is solved using standard solver libraries like `pulp` (invoking
 | **Backtracking** | Variable ($1\text{ms} - 500\text{ms}$) | **Guaranteed** | Moderate ($O(M)$ recursion stack) | Small hands, offline analysis, hands with few overlapping melds. |
 | **Hybrid** | Stable ($<50\text{ms}$) | High (Pruned search) | Moderate | Production API servers with strict SLAs. |
 | **ILP (PuLP)** | Extremely Fast ($1\text{ms} - 5\text{ms}$) | **Guaranteed** | Moderate | Complex hands with multiple wildcards, server-side game engines. |
+| **Beam Search** | Fast ($1\text{ms} - 10\text{ms}$) | High (Bounded search) | Minimal ($O(K)$) | Large hand searches with tight memory limitations. |
+| **Genetic** | Moderate ($5\text{ms} - 25\text{ms}$) | High (Heuristic) | Moderate | Large search spaces where exact solvers are slow or unavailable. |
+| **Simulated Annealing** | Fast ($2\text{ms} - 15\text{ms}$) | High (Heuristic) | Minimal | Fine-tuning complex hands to escape local minima. |
+| **MCTS** | Moderate ($5\text{ms} - 30\text{ms}$) | High (Simulation-based) | Moderate | Hands with high branching factor and probabilistic rollouts. |
 
 ---
 
